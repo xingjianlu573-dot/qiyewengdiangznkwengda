@@ -11,6 +11,7 @@ import re
 from typing import List
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -21,7 +22,18 @@ from . import pipeline
 app = FastAPI(
     title="Enterprise Document Intelligence Assistant",
     description="企业文档智能问答系统：上传 PDF / Word / Markdown，构建可溯源的知识问答。",
-    version="1.0.0",
+    version="1.1.0",
+)
+
+# 跨域支持：允许展示页（本地 file:// 或静态托管）直接调用 API。
+# 生产环境建议收紧为固定域名（如 CORS_ALLOW_ORIGINS=https://kb.company.com）。
+_cors_origins = os.getenv("CORS_ALLOW_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _cors_origins if o.strip()],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 UPLOAD_DIR = os.path.join(settings.DATA_DIR, "uploads")

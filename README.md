@@ -11,6 +11,8 @@
 > 🇨🇳 中国大陆部署指南见 **[README_CN.md](README_CN.md)**。
 >
 > 🖥️ 企业 AI 应用案例展示页（作品集 / 演示用）：打开 **[showcase.html](showcase.html)**。
+>
+> 🧪 在线功能演示页（真实操作：上传 / 问答 / 引用溯源 / 拒答演示）：服务启动后访问 **`http://127.0.0.1:8000/demo.html`**（源码 `static/demo.html`）。
 
 ---
 

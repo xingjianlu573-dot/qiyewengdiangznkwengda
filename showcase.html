@@ -216,7 +216,7 @@
       <a class="btn btn-primary" href="https://github.com/xingjianlu573-dot/qiyewengdiangznkwengda" target="_blank" rel="noopener">
         查看源码（GitHub）
       </a>
-      <button class="btn btn-ghost" id="btn-demo">本地运行演示</button>
+      <button class="btn btn-ghost" id="btn-demo">打开功能演示页</button>
     </div>
     <div class="stats">
       <div class="stat"><div class="num">4 份</div><div class="lbl">演示知识文档（三种格式）</div></div>
@@ -381,6 +381,7 @@
       <figure class="shot"><img src="docs/screenshots/05-hallucination-rejection.png" alt="库外问题拒答演示" loading="lazy" /><figcaption class="cap">防幻觉：知识库外问题明确拒答</figcaption></figure>
       <figure class="shot"><img src="docs/screenshots/06-upload-document.png" alt="文档上传入库演示" loading="lazy" /><figcaption class="cap">文档上传：自动解析 → 切片 → 入库</figcaption></figure>
       <figure class="shot"><img src="docs/screenshots/07-deploy-health.png" alt="部署健康检查接口" loading="lazy" /><figcaption class="cap">部署验证：健康检查接口输出引擎与知识库状态</figcaption></figure>
+      <figure class="shot"><img src="docs/screenshots/08-demo-page.png" alt="在线功能演示页" loading="lazy" /><figcaption class="cap">在线功能演示页：真实上传、问答与引用溯源（服务运行时访问 /demo.html）</figcaption></figure>
     </div>
   </div>
 </section>
@@ -422,7 +423,12 @@
     timer = setTimeout(function () { toast.classList.remove("show"); }, 4200);
   }
   document.getElementById("btn-demo").addEventListener("click", function () {
-    show("本地运行演示：python scripts/ingest.py --dir data/knowledge_base && python scripts/run.py，然后访问 http://127.0.0.1:8000");
+    // 服务已运行时直接进入功能演示页；否则给出运行指引（避免死链/僵尸按钮）
+    if (location.protocol === "http:" && /(localhost|127\.0\.0\.1)/.test(location.host)) {
+      location.href = "/demo.html";
+      return;
+    }
+    show("功能演示页（真实操作）需本地后端：在本仓库执行 python scripts/run.py，然后访问 http://127.0.0.1:8000/demo.html 在线体验上传、问答与引用溯源；或查看仓库 static/demo.html 源码。");
   });
 })();
 </script>
