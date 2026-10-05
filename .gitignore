@@ -2,6 +2,8 @@
 .env
 data/vector_index.json
 data/uploads/
+server.log
+server.err.log
 __pycache__/
 *.pyc
 .venv/
