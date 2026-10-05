@@ -2,6 +2,17 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-0.142-green) ![License](https://img.shields.io/badge/License-MIT-yellow) ![国产模型](https://img.shields.io/badge/LLM-国产适配%20%7C%20OpenAI%20兼容-orange) ![国内部署](https://img.shields.io/badge/部署-中国大陆%20直连-red)
 
+## 🚀 在线体验与演示
+
+| 页面 | 说明 | 入口 |
+| --- | --- | --- |
+| 🖥️ **企业 AI 案例展示页** | 作品集展示：企业案例 / RAG 管线 / 国产模型 / 国内部署 / 演示截图 | [打开展示页 showcase.html](showcase.html) |
+| 🧪 **在线功能演示页** | 真实操作：上传文档、问答、引用溯源、拒答演示 | [功能演示 http://127.0.0.1:8000/demo.html](http://127.0.0.1:8000/demo.html) |
+
+> 展示页在 GitHub 上可直接打开；功能演示页需先启动服务（`python scripts/run.py`），或直接访问源码 [`static/demo.html`](static/demo.html)。
+
+---
+
 > **面向企业员工的文档知识问答助手**：上传 PDF / Word / Markdown，自动完成「解析 → 切片 → 向量化 → 检索 → AI 回答 → 引用溯源」，内置三重防幻觉机制。
 >
 > **企业 AI 落地视角**：一套代码同时支持 **RAG 知识问答**、**国产大模型一键切换**（通义千问 / 智谱 / DeepSeek / 月之暗面 / 硅基流动）与 **中国大陆零外网依赖部署** —— 前端零 CDN、零 npm、离线可用、数据本地化。
@@ -9,10 +20,6 @@
 > 本项目由开源项目 **n8n-rag-chatbot**（n8n + Qdrant + Gemini 原型）改造而来：从可视化工作流升级为**可独立部署、可离线演示、可接入任意大模型网关**的企业级 RAG 应用。
 >
 > 🇨🇳 中国大陆部署指南见 **[README_CN.md](README_CN.md)**。
->
-> 🖥️ 企业 AI 应用案例展示页（作品集 / 演示用）：打开 **[showcase.html](showcase.html)**。
->
-> 🧪 在线功能演示页（真实操作：上传 / 问答 / 引用溯源 / 拒答演示）：服务启动后访问 **`http://127.0.0.1:8000/demo.html`**（源码 `static/demo.html`）。
 
 ---
 
