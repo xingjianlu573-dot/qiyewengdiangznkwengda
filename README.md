@@ -1,8 +1,16 @@
 # 📚 Enterprise Document Intelligence Assistant 企业文档智能问答系统
 
-> **面向企业员工的文档知识问答助手**：上传 PDF / Word / Markdown，自动完成「解析 → 切片 → 向量化 → 检索 → AI 回答 → 引用溯源」，并内置三重防幻觉机制。
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-0.142-green) ![License](https://img.shields.io/badge/License-MIT-yellow) ![国产模型](https://img.shields.io/badge/LLM-国产适配%20%7C%20OpenAI%20兼容-orange) ![国内部署](https://img.shields.io/badge/部署-中国大陆%20直连-red)
+
+> **面向企业员工的文档知识问答助手**：上传 PDF / Word / Markdown，自动完成「解析 → 切片 → 向量化 → 检索 → AI 回答 → 引用溯源」，内置三重防幻觉机制。
+>
+> **企业 AI 落地视角**：一套代码同时支持 **RAG 知识问答**、**国产大模型一键切换**（通义千问 / 智谱 / DeepSeek / 月之暗面 / 硅基流动）与 **中国大陆零外网依赖部署** —— 前端零 CDN、零 npm、离线可用、数据本地化。
 >
 > 本项目由开源项目 **n8n-rag-chatbot**（n8n + Qdrant + Gemini 原型）改造而来：从可视化工作流升级为**可独立部署、可离线演示、可接入任意大模型网关**的企业级 RAG 应用。
+>
+> 🇨🇳 中国大陆部署指南见 **[README_CN.md](README_CN.md)**。
+>
+> 🖥️ 企业 AI 应用案例展示页（作品集 / 演示用）：打开 **[showcase.html](showcase.html)**。
 
 ---
 
@@ -14,8 +22,9 @@
 | 🔄 完整 RAG 管线 | 文档解析 → 章节感知切片 → 向量化 → 混合检索 → LLM 回答，全链路代码实现 |
 | 📌 引用溯源 | 每条回答标注 **[来源编号]**，前端展示来源卡片：文档名、章节、页码、匹配度、原文片段 |
 | 🛡️ 防幻觉三重机制 | ① 相似度阈值过滤低相关片段 ② 强约束提示词「仅依据文档作答，不知道就明说」③ 库外问题直接拒答并给出建议 |
-| 🧠 双模式引擎 | **离线演示模式**（免密钥，开箱即用） + **API 模式**（接入任意 OpenAI 兼容的 LLM / Embedding 网关） |
+| 🧠 多厂商引擎 | **国产大模型一键切换**（`MODEL_PROVIDER=qwen/zhipu/deepseek/moonshot/siliconflow`）+ 免密钥离线演示模式 |
 | 🗄️ 零依赖向量库 | JSON 文件持久化 + 纯 Python 余弦相似度，无需数据库服务，单文件备份/迁移/恢复 |
+| 🇨🇳 国内零外网部署 | 无 CDN / 无 npm / 无国外存储，Docker 内置国内镜像源，中国大陆直连可用 |
 | 🧹 文档生命周期 | 在线查看文档列表、按文档删除并同步清理索引片段 |
 
 ## 📸 演示截图
@@ -84,10 +93,10 @@ Embedding(问题) ──► 混合检索：语义余弦 + 词法分
 ### 方式一：本地运行（免密钥，离线演示）
 
 ```bash
-# 1. 安装依赖（Python 3.10+）
+# 1. 安装依赖（Python 3.10+；国内环境可加 -i 清华源加速）
 python -m venv .venv
 .venv\Scripts\activate          # Windows
-pip install -r requirements.txt
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 2. 灌入演示知识库（IT 运维：网络故障SOP / Windows故障 / VPN配置 / 邮箱问题）
 python scripts/ingest.py --dir data/knowledge_base --reset
@@ -97,32 +106,42 @@ python scripts/run.py
 # 浏览器打开 http://127.0.0.1:8000
 ```
 
-> 默认 `EMBEDDING_PROVIDER=local` + `LLM_PROVIDER=offline`，**无需任何 API Key** 即可体验完整 RAG 问答与引用溯源。
+> 默认 `MODEL_PROVIDER=offline`（本地向量 + 内置引用模板），**无需任何 API Key** 即可体验完整 RAG 问答与引用溯源。
 
 ### 方式二：Docker 一键部署
 
 ```bash
+# 国内环境先配置 Docker 镜像加速（见 README_CN.md 2.1）
 docker compose up -d --build
 # 访问 http://localhost:8000
 ```
 
-### 接入真实大模型（推荐企业正式使用）
+### 接入真实大模型（推荐企业正式使用，国产模型一键切换）
 
-复制 `.env.example` 为 `.env`，配置 Embedding 与 LLM（任选一家 OpenAI 兼容网关，如 SiliconFlow / DashScope / OpenAI）：
+复制 `.env.example` 为 `.env`，设置 `MODEL_PROVIDER` 与密钥即可，**网关地址与模型名已内置**：
 
 ```ini
-EMBEDDING_PROVIDER=api
-EMBEDDING_BASE_URL=https://api.siliconflow.cn/v1
-EMBEDDING_API_KEY=sk-xxx
-EMBEDDING_MODEL=BAAI/bge-m3
-
-LLM_PROVIDER=api
-LLM_BASE_URL=https://api.siliconflow.cn/v1
+# 示例：通义千问（阿里云百炼，国内直连）
+MODEL_PROVIDER=qwen
 LLM_API_KEY=sk-xxx
-LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
+
+# 示例：智谱AI GLM-4-Flash（免费额度）
+# MODEL_PROVIDER=zhipu
+# LLM_API_KEY=xxx.xxx
+
+# 示例：DeepSeek / 月之暗面 Kimi / SiliconFlow（详见 README_CN.md 第四节）
 ```
 
-重启后回答将由真实 LLM 生成，引用约束提示词自动生效。
+| Provider | 厂商 | 默认模型 | 网关 |
+| --- | --- | --- | --- |
+| `qwen` | 通义千问 | qwen-plus | dashscope.aliyuncs.com（国内） |
+| `zhipu` | 智谱AI | glm-4-flash | open.bigmodel.cn（国内） |
+| `deepseek` | DeepSeek | deepseek-chat | api.deepseek.com（国内） |
+| `moonshot` | 月之暗面 | moonshot-v1-8k | api.moonshot.cn（国内） |
+| `siliconflow` | 硅基流动 | Qwen/Qwen2.5-7B-Instruct | api.siliconflow.cn（国内） |
+| `openai` | OpenAI | gpt-4o-mini | api.openai.com（海外） |
+
+重启后回答将由真实 LLM 生成，引用约束提示词与一致性校验自动生效。
 
 ---
 
@@ -144,6 +163,44 @@ LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
 - 「VPN 提示认证失败怎么办」→ 命中 VPN 配置手册
 - 「Outlook 收不到邮件怎么排查」→ 命中邮箱问题 PDF
 - 「怎么申请年假和报销差旅费」→ **拒答**（知识库外问题，验证防幻觉）
+
+---
+
+## 🏢 企业 AI 应用落地案例
+
+> **场景**：某公司 IT 运维部门建设「运维知识助手」，让一线员工自助查询网络故障、Windows 故障、VPN 配置、邮箱问题等高频问题，减少对运维团队的人工咨询。
+
+**业务价值**：
+
+| 指标 | 传统模式 | 接入本系统后 |
+| --- | --- | --- |
+| 高频问题咨询 | 运维人工应答，重复度 > 60% | 员工自助问答，7×24 在线 |
+| 知识查找 | 翻文档/问同事，单次 5~15 分钟 | 秒级检索 + 引用原文可核对 |
+| 回答可信度 | 口口相传，无依据 | 每条回答带来源文档/章节/页码 |
+| 错误操作风险 | 凭经验操作 | 仅依据 SOP 作答，库外问题拒答 |
+
+**落地链路**：上传 SOP 文档（PDF/Word/Markdown）→ 自动解析入库 → 员工提问 → 混合检索 → 大模型依据文档作答 → 引用溯源核对 → 数据全部本地化、可审计。
+
+### 部署验证截图
+
+| 服务运行验证（健康检查） | 演示问答（引用溯源） |
+| --- | --- |
+| ![部署运行验证](docs/screenshots/07-deploy-health.png) | ![演示问答](docs/screenshots/02-chat-answer-network.png) |
+
+> 部署方式：本地 Python / Docker Compose / 国内云服务器（阿里云·腾讯云）三选一，完整步骤见 **[README_CN.md](README_CN.md)**。
+
+---
+
+## 🇨🇳 中国大陆部署能力
+
+| 能力 | 说明 |
+| --- | --- |
+| 前端零外链 | 无 CDN / npm / 第三方 JS，静态资源随服务同源托管 |
+| 国产大模型直连 | qwen / zhipu / deepseek / moonshot / siliconflow 全部国内网关 |
+| Docker 国内加速 | pip 内置清华源；提供镜像加速器配置与国内基础镜像备选 |
+| 数据本地化 | 无国外存储，索引为本地 JSON 文件，可整体备份迁移 |
+| 国内下载通道 | 支持 Gitee（码云）镜像仓库，国内克隆可达数 MB/s |
+| 风险审查 | 完整清单见 [docs/CHINA_ACCESS_REVIEW.md](docs/CHINA_ACCESS_REVIEW.md) |
 
 ---
 
@@ -196,9 +253,9 @@ curl -X POST http://127.0.0.1:8000/api/query \
 
 ```
 enterprise-document-intelligence/
-├── app/                      # 后端分层实现
+├── app/
 │   ├── main.py               # FastAPI 入口：上传/管理/问答 API + 静态前端
-│   ├── config.py             # .env 配置（密钥不进代码）
+│   ├── config.py             # .env 配置 + AI Provider 注册表（MODEL_PROVIDER 国产模型映射）
 │   ├── parsers/              # 解析层：PDF(页内章节) / Word(标题+表格) / Markdown(标题)
 │   ├── chunker.py            # 切片层：章节感知 + 固定长度 + 重叠窗口 + 溯源元数据
 │   ├── embeddings.py         # 向量化层：离线哈希向量 / OpenAI 兼容 Embedding
@@ -215,11 +272,13 @@ enterprise-document-intelligence/
 │   ├── ingest.py             # 离线灌库 CLI（--dir / --file / --reset）
 │   ├── build_demo_kb.py      # 生成演示 Word/PDF 文档
 │   └── api_smoke_test.py     # API 冒烟验证
-├── tests/test_pipeline.py    # 管线端到端自测（33 项断言）
+├── tests/
+│   ├── test_pipeline.py      # 管线端到端自测（33 项断言）
+│   └── test_providers.py     # AI Provider 抽象层测试（50 项断言）
 ├── docs/screenshots/         # 演示截图
-├── Dockerfile / docker-compose.yml
-├── .env.example              # 配置模板
-└── README.md / DEPLOYMENT.md
+├── Dockerfile / docker-compose.yml   # 内置国内 pip 镜像源
+├── .env.example              # 配置模板（含 MODEL_PROVIDER 全量说明）
+└── README.md / README_CN.md / DEPLOYMENT.md
 ```
 
 ---
@@ -227,11 +286,13 @@ enterprise-document-intelligence/
 ## ✅ 测试与验证
 
 ```bash
-python tests/test_pipeline.py      # 管线端到端自测（33 项断言，全部通过）
-python scripts/api_smoke_test.py   # 在线 API 冒烟验证（需服务已启动）
+python tests/test_pipeline.py       # 管线端到端自测（33 项断言，全部通过）
+python tests/test_providers.py      # AI Provider 抽象层测试（50 项断言，全部通过）
+python scripts/api_smoke_test.py    # 在线 API 冒烟验证（需服务已启动）
 ```
 
-覆盖范围：三种格式解析、切片与元数据、入库持久化、四类典型问题检索命中、引用编号与证据一致、**库外问题拒答（幻觉抑制）**、文档删除与索引清理、非法格式拦截。
+覆盖范围：三种格式解析、切片与元数据、入库持久化、四类典型问题检索命中、引用编号与证据一致、**库外问题拒答（幻觉抑制）**、文档删除与索引清理、非法格式拦截，以及 **6 家模型厂商的网关/模型名解析、Embedding 能力推断、越界引用拦截、免密钥回退离线**。
+完整报告见 [docs/TEST_REPORT.md](docs/TEST_REPORT.md)。
 
 ---
 
@@ -250,10 +311,11 @@ python scripts/api_smoke_test.py   # 在线 API 冒烟验证（需服务已启�
 
 - **后端**：Python · FastAPI · Uvicorn
 - **解析**：PyMuPDF（PDF）· python-docx（Word）
-- **检索**：纯 Python 混合检索（语义余弦 + BM25-lite）
-- **LLM / Embedding**：OpenAI 兼容接口（SiliconFlow / DashScope / OpenAI 等）+ 内置离线模式
-- **前端**：原生 HTML / CSS / JavaScript（单页应用，零构建）
-- **部署**：本地一键启动 / Docker Compose
+- **检索**：纯 Python 混合检索（语义余弦 + BM25-lite）+ 阈值门禁
+- **RAG / Agent / Workflow**：文档解析→切片→向量化→混合检索→LLM 回答→引用溯源的完整自动化工作流（`app/pipeline.py` 编排）
+- **LLM / Embedding**：**AI Provider 抽象层**（`MODEL_PROVIDER` 一键切换国产模型：通义千问 / 智谱 / DeepSeek / 月之暗面 / 硅基流动 / OpenAI）+ 内置免密钥离线模式
+- **前端**：原生 HTML / CSS / JavaScript（单页应用，零构建、零 CDN）
+- **部署**：本地一键启动 / Docker Compose（内置国内 pip 镜像）/ 国内云服务器（阿里云·腾讯云）
 
 ## 📄 License
 

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Enterprise Document Intelligence Assistant · 企业 AI 应用案例</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E6E6E'/%3E%3Ctext x='16' y='22' font-size='14' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EEDI%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&display=swap" />
+<style>
+  :root {
+    --bg: #F6F5F1;
+    --surface: #FFFFFF;
+    --ink: #182026;
+    --muted: #5B6670;
+    --line: #E4E2DA;
+    --accent: #0E6E6E;
+    --accent-deep: #0A5454;
+    --accent-soft: #E3F0EE;
+    --ok: #2F7D46;
+    --warn: #B45309;
+    --radius: 14px;
+    --shadow: 0 1px 3px rgba(24,32,38,.08), 0 8px 24px -12px rgba(24,32,38,.14);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- 顶栏 ---------- */
+  header.nav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(246,245,241,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .2px; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 8px; background: var(--accent);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+  }
+  nav.links { display: flex; gap: 22px; font-size: 14px; }
+  nav.links a { color: var(--muted); }
+  nav.links a:hover { color: var(--accent); text-decoration: none; }
+
+  /* ---------- Hero ---------- */
+  section.hero { padding: 88px 0 64px; }
+  .hero .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid #CFE3DF;
+    padding: 6px 14px; border-radius: 999px; letter-spacing: .5px;
+  }
+  .hero h1 { font-size: clamp(34px, 5vw, 54px); line-height: 1.18; font-weight: 800; margin: 22px 0 18px; letter-spacing: -.5px; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .sub { font-size: 17px; color: var(--muted); max-width: 640px; }
+  .hero .cta-row { display: flex; gap: 14px; margin-top: 30px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 10px; font-weight: 600; font-size: 14px;
+    border: 1px solid transparent; cursor: pointer; transition: all .18s ease;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-deep); text-decoration: none; }
+  .btn-ghost { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+  .hero .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 52px; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .stat .num { font-size: 30px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ---------- 通用章节 ---------- */
+  section.block { padding: 64px 0; border-top: 1px solid var(--line); }
+  .sec-head { margin-bottom: 36px; }
+  .sec-head .no { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+  .sec-head h2 { font-size: clamp(24px, 3vw, 32px); font-weight: 800; margin-top: 8px; letter-spacing: -.3px; }
+  .sec-head p { color: var(--muted); margin-top: 10px; max-width: 720px; }
+
+  /* ---------- 价值对比 ---------- */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 26px 28px; box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .card ul { list-style: none; }
+  .card li { display: flex; gap: 10px; padding: 7px 0; font-size: 14px; color: var(--muted); border-bottom: 1px dashed var(--line); }
+  .card li:last-child { border-bottom: none; }
+  .card li strong { color: var(--ink); font-weight: 600; }
+  .card.old { background: #FBFAF7; }
+  .card.old li::before { content: ""; flex: none; width: 16px; height: 16px; margin-top: 3px;
+    background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23B45309" stroke-width="2"%3E%3Cpath d="M18 6 6 18M6 6l12 12"/%3E%3C/svg%3E') center/contain no-repeat; }
+  .card.new li::before { content: ""; flex: none; width: 16px; height: 16px; margin-top: 3px;
+    background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%232F7D46" stroke-width="2.4"%3E%3Cpath d="M20 6 9 17l-5-5"/%3E%3C/svg%3E') center/contain no-repeat; }
+
+  /* ---------- RAG 管线流程 ---------- */
+  .flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; margin-top: 8px; }
+  .flow .step { position: relative; padding: 22px 14px 18px; }
+  .flow .step .idx { font-size: 12px; font-weight: 800; color: var(--accent); }
+  .flow .step h4 { font-size: 15px; font-weight: 700; margin: 8px 0 6px; }
+  .flow .step p { font-size: 13px; color: var(--muted); }
+  .flow .step::after {
+    content: ""; position: absolute; right: -10px; top: 30px; width: 20px; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .flow .step:last-child::after { display: none; }
+  .pipeline-note {
+    margin-top: 26px; background: var(--accent-soft); border: 1px solid #CFE3DF;
+    border-radius: var(--radius); padding: 16px 20px; font-size: 13.5px; color: var(--accent-deep);
+  }
+
+  /* ---------- 防幻觉 ---------- */
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .mini { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); }
+  .mini h4 { font-size: 15px; font-weight: 700; margin: 12px 0 8px; }
+  .mini p { font-size: 13px; color: var(--muted); }
+  .mini .ic { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); }
+
+  /* ---------- 表格 ---------- */
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  thead th { background: #F1EFE9; text-align: left; font-size: 13px; font-weight: 700; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  tbody td { padding: 12px 16px; font-size: 13.5px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  td .mono { font-family: Consolas, "Courier New", monospace; font-size: 12.5px; background: #F1EFE9; border-radius: 5px; padding: 1px 7px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-deep); }
+  .pill.off { background: #F1EFE9; color: var(--muted); }
+
+  /* ---------- 截图画廊 ---------- */
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .shot { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+  .shot img { width: 100%; display: block; aspect-ratio: 16/10; object-fit: cover; object-position: top; }
+  .shot .cap { padding: 10px 14px; font-size: 12.5px; color: var(--muted); }
+
+  /* ---------- 测试指标 ---------- */
+  .tests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .tcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+  .tcard .rate { font-size: 34px; font-weight: 800; color: var(--ok); font-variant-numeric: tabular-nums; }
+  .tcard .name { font-weight: 700; margin-top: 6px; }
+  .tcard .desc { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  /* ---------- Footer ---------- */
+  footer { border-top: 1px solid var(--line); padding: 40px 0 56px; color: var(--muted); font-size: 13.5px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  footer a { color: var(--accent); }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 10px;
+    font-size: 13.5px; opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 99;
+    max-width: 86vw;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 900px) {
+    body { font-size: 16px; }
+    .hero .stats { grid-template-columns: repeat(2, 1fr); }
+    .flow { grid-template-columns: repeat(2, 1fr); }
+    .flow .step::after { display: none; }
+    .flow .step p { font-size: 14px; }
+    .mini p { font-size: 14px; }
+    .card li { font-size: 15px; }
+    .grid4 { grid-template-columns: repeat(2, 1fr); }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
+    .tests { grid-template-columns: 1fr; }
+    .compare { grid-template-columns: 1fr; }
+    nav.links { display: none; }
+  }
+  @media (max-width: 560px) {
+    .grid4 { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: 1fr; }
+    .hero { padding: 60px 0 44px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 顶栏 ===== -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div class="brand"><span class="mark">EDI</span> Enterprise Document Intelligence</div>
+    <nav class="links">
+      <a href="#value">企业价值</a>
+      <a href="#pipeline">RAG 管线</a>
+      <a href="#models">国产模型</a>
+      <a href="#deploy">国内部署</a>
+      <a href="#gallery">演示截图</a>
+      <a href="#tests">测试验证</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="wrap">
+    <span class="kicker">企业 AI 应用案例 · RAG 知识库问答系统</span>
+    <h1>让每一份企业文档<br />变成可问答、<em>可溯源</em>的 AI 知识</h1>
+    <p class="sub">上传 PDF / Word / Markdown，系统自动完成解析、切片、向量化、检索与 AI 作答；每条回答附带来源文档、章节、页码与原文片段，从机制上杜绝凭空编造。</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/xingjianlu573-dot/qiyewengdiangznkwengda" target="_blank" rel="noopener">
+        查看源码（GitHub）
+      </a>
+      <button class="btn btn-ghost" id="btn-demo">本地运行演示</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num">4 份</div><div class="lbl">演示知识文档（三种格式）</div></div>
+      <div class="stat"><div class="num">83 项</div><div class="lbl">自动化测试断言全部通过</div></div>
+      <div class="stat"><div class="num">6 家</div><div class="lbl">大模型厂商一键切换</div></div>
+      <div class="stat"><div class="num">0 个</div><div class="lbl">前端 CDN / npm 外部依赖</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 企业价值 ===== -->
+<section class="block" id="value">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">01 · 企业场景</div>
+      <h2>IT 运维知识助手：把高频咨询变成自助问答</h2>
+      <p>企业 IT 运维中，网络故障、Windows 故障、VPN 配置、邮箱问题等咨询高度重复。本系统把散落在 SOP、手册、PDF 中的运维知识统一入库，让员工 7×24 自助查询。</p>
+    </div>
+    <div class="compare">
+      <div class="card old">
+        <h3>传统模式</h3>
+        <ul>
+          <li><strong>人工应答</strong> 重复问题占咨询量 60% 以上</li>
+          <li><strong>翻文档找答案</strong> 单次 5~15 分钟，依赖个人经验</li>
+          <li><strong>口口相传</strong> 回答无依据，难以核对</li>
+          <li><strong>凭经验操作</strong> 高风险操作存在误判可能</li>
+        </ul>
+      </div>
+      <div class="card new">
+        <h3>接入本系统后</h3>
+        <ul>
+          <li><strong>员工自助问答</strong> 秒级响应，7×24 在线</li>
+          <li><strong>文档直达答案</strong> 每条回答带来源可一键核对</li>
+          <li><strong>仅依据文档作答</strong> 库外问题明确拒答，不编造</li>
+          <li><strong>全链路可审计</strong> 引用原文片段，责任可追溯</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== RAG 管线 ===== -->
+<section class="block" id="pipeline">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">02 · 核心能力</div>
+      <h2>一条完整的 RAG 自动化管线</h2>
+      <p>从员工提问到带引用的回答，全链路代码实现（FastAPI 编排），无第三方编排平台依赖。</p>
+    </div>
+    <div class="flow">
+      <div class="step"><div class="idx">01</div><h4>文档上传</h4><p>PDF / Word / Markdown，白名单校验、大小限制、防路径穿越</p></div>
+      <div class="step"><div class="idx">02</div><h4>智能解析</h4><p>PDF 页内章节识别、Word 标题样式、Markdown 标题层级</p></div>
+      <div class="step"><div class="idx">03</div><h4>章节感知切片</h4><p>600 字 + 100 字重叠，保留章节/页码溯源元数据</p></div>
+      <div class="step"><div class="idx">04</div><h4>向量化</h4><p>语义 Embedding 或免密钥离线向量，JSON 本地持久化</p></div>
+      <div class="step"><div class="idx">05</div><h4>混合检索</h4><p>语义 60% + 词法 40%，阈值过滤低相关片段</p></div>
+      <div class="step"><div class="idx">06</div><h4>AI 回答 + 引用</h4><p>大模型依据证据作答，强制 [来源编号] 标注并校验一致性</p></div>
+    </div>
+    <div class="pipeline-note">问答链路：员工提问 → 问题向量化 → 混合检索 → 相似度阈值门禁（MIN_SCORE=0.24）→ Top-4 证据片段 → LLM 依据证据作答 → 前端渲染回答与来源卡片。零依赖向量数据库，索引为单 JSON 文件，可整体备份迁移。</div>
+  </div>
+</section>
+
+<!-- ===== 防幻觉 ===== -->
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">03 · 可信设计</div>
+      <h2>三重机制抑制幻觉，回答可核对</h2>
+    </div>
+    <div class="grid4">
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round"><path d="M12 3v3m6.4 2.6 2.1 2.1M21 12h-3M4.6 7.6 2.5 9.7M3 12h3"/><circle cx="12" cy="12" r="4"/></svg></span>
+        <h4>检索质量门禁</h4>
+        <p>混合检索 + 相似度阈值：低相关片段根本不会进入回答，从源头切断幻觉。</p>
+      </div>
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+        <h4>强约束提示词</h4>
+        <p>系统级 Prompt：只准使用文档片段作答，不确定必须明说，不得调用背景知识。</p>
+      </div>
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 3.8 8.5 9 10 5.2-1.5 9-5 9-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <h4>引用一致性校验</h4>
+        <p>LLM 输出的 [n] 编号必须落在真实证据范围内，越界引用自动拦截（API 模式）。</p>
+      </div>
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg></span>
+        <h4>知识库外拒答</h4>
+        <p>检索不到足够相关内容时明确告知，不生成"看似合理"的编造答案。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 国产模型 ===== -->
+<section class="block" id="models">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">04 · 国产模型适配</div>
+      <h2>一套代码，六家模型厂商一键切换</h2>
+      <p>AI Provider 抽象层：仅需修改 <span class="mono">MODEL_PROVIDER</span> 环境变量，网关地址与模型名自动匹配，无需改动任何代码。</p>
+    </div>
+    <table>
+      <colgroup><col style="width:16%"><col style="width:20%"><col style="width:26%"><col style="width:20%"><col style="width:18%"></colgroup>
+      <thead><tr><th>Provider</th><th>厂商</th><th>默认模型</th><th>Embedding</th><th>网关</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mono">qwen</span></td><td>通义千问</td><td>qwen-plus</td><td>text-embedding-v3</td><td><span class="pill">国内直连</span></td></tr>
+        <tr><td><span class="mono">zhipu</span></td><td>智谱AI GLM</td><td>glm-4-flash（免费）</td><td>embedding-2</td><td><span class="pill">国内直连</span></td></tr>
+        <tr><td><span class="mono">deepseek</span></td><td>DeepSeek</td><td>deepseek-chat</td><td>自动回退离线向量</td><td><span class="pill">国内直连</span></td></tr>
+        <tr><td><span class="mono">moonshot</span></td><td>月之暗面 Kimi</td><td>moonshot-v1-8k</td><td>自动回退离线向量</td><td><span class="pill">国内直连</span></td></tr>
+        <tr><td><span class="mono">siliconflow</span></td><td>硅基流动</td><td>Qwen/Qwen2.5-7B</td><td>BAAI/bge-m3</td><td><span class="pill">国内直连</span></td></tr>
+        <tr><td><span class="mono">openai</span></td><td>OpenAI</td><td>gpt-4o-mini</td><td>text-embedding-3-small</td><td><span class="pill off">海外 · 需代理</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 国内部署 ===== -->
+<section class="block" id="deploy">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">05 · 国内部署能力</div>
+      <h2>中国大陆零外网依赖：下载、部署、运行全链路可用</h2>
+      <p>完整部署指南见仓库 <span class="mono">README_CN.md</span>；风险审查清单见 <span class="mono">docs/CHINA_ACCESS_REVIEW.md</span>。</p>
+    </div>
+    <div class="grid4">
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round"><path d="M4 17l6-6 4 4 6-8"/><path d="M14 7h6v6"/></svg></span>
+        <h4>前端零外链</h4>
+        <p>无 CDN、无 npm、无第三方 JS，静态资源随服务同源托管，国内访问无拦截。</p>
+      </div>
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></span>
+        <h4>Docker 国内加速</h4>
+        <p>pip 内置清华源；提供镜像加速器配置与国内基础镜像备选方案。</p>
+      </div>
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span>
+        <h4>数据本地化</h4>
+        <p>无国外存储与数据库；索引为本地 JSON 文件，可整体备份迁移。</p>
+      </div>
+      <div class="mini">
+        <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>
+        <h4>国内下载通道</h4>
+        <p>支持 Gitee（码云）镜像仓库，国内克隆速度可达数 MB/s。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 演示截图 ===== -->
+<section class="block" id="gallery">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">06 · 真实运行截图</div>
+      <h2>功能演示（全部来自真实运行环境）</h2>
+    </div>
+    <div class="gallery">
+      <figure class="shot"><img src="docs/screenshots/01-home.png" alt="系统首页与知识库概览" loading="lazy" /><figcaption class="cap">首页：上传区 + 文档管理 + 问答区</figcaption></figure>
+      <figure class="shot"><img src="docs/screenshots/02-chat-answer-network.png" alt="网络故障问答带引用卡片" loading="lazy" /><figcaption class="cap">网络故障问答：回答带 [来源编号] 与引用卡片</figcaption></figure>
+      <figure class="shot"><img src="docs/screenshots/03-citation-source.png" alt="引用原文片段展开" loading="lazy" /><figcaption class="cap">引用溯源：展开查看文档章节与原文片段</figcaption></figure>
+      <figure class="shot"><img src="docs/screenshots/04-chat-answer-mail.png" alt="Outlook 邮箱问题问答" loading="lazy" /><figcaption class="cap">邮箱问题问答：命中 PDF 文档，三条引用</figcaption></figure>
+      <figure class="shot"><img src="docs/screenshots/05-hallucination-rejection.png" alt="库外问题拒答演示" loading="lazy" /><figcaption class="cap">防幻觉：知识库外问题明确拒答</figcaption></figure>
+      <figure class="shot"><img src="docs/screenshots/06-upload-document.png" alt="文档上传入库演示" loading="lazy" /><figcaption class="cap">文档上传：自动解析 → 切片 → 入库</figcaption></figure>
+      <figure class="shot"><img src="docs/screenshots/07-deploy-health.png" alt="部署健康检查接口" loading="lazy" /><figcaption class="cap">部署验证：健康检查接口输出引擎与知识库状态</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 测试验证 ===== -->
+<section class="block" id="tests">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="no">07 · 测试与验证</div>
+      <h2>可复现的工程验证，而非演示性结论</h2>
+    </div>
+    <div class="tests">
+      <div class="tcard"><div class="rate">33 / 33</div><div class="name">管线端到端自测</div><div class="desc">解析 → 切片 → 入库 → 检索 → 引用 → 拒答 → 删除，全链路断言通过。</div></div>
+      <div class="tcard"><div class="rate">50 / 50</div><div class="name">AI Provider 抽象层测试</div><div class="desc">六家厂商网关/模型解析、Embedding 能力推断、越界引用拦截、免密钥回退。</div></div>
+      <div class="tcard"><div class="rate">18 项</div><div class="name">在线 API 冒烟验证</div><div class="desc">上传 / 删除 / 格式拦截 / 四类典型问题命中 / 库外拒答，全链路通过。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="wrap">
+    <div>Enterprise Document Intelligence Assistant · MIT License</div>
+    <div>基于 <a href="https://github.com/syedshahidashiqali/n8n-rag-chatbot" target="_blank" rel="noopener">n8n-rag-chatbot</a> 改造 · <a href="README_CN.md">中国大陆部署指南</a></div>
+  </div>
+</footer>
+
+<div id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+  var toast = document.getElementById("toast");
+  var timer = null;
+  function show(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove("show"); }, 4200);
+  }
+  document.getElementById("btn-demo").addEventListener("click", function () {
+    show("本地运行演示：python scripts/ingest.py --dir data/knowledge_base && python scripts/run.py，然后访问 http://127.0.0.1:8000");
+  });
+})();
+</script>
+</body>
+</html>

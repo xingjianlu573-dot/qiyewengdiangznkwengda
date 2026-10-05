@@ -9,3 +9,5 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+# html skill 自检输出（非交付产物）
+_shots/

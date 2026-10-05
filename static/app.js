@@ -15,14 +15,20 @@
   const FORMAT_TAGS = { PDF: "pdf", Word: "word", Markdown: "md", 文本: "txt", 文档: "txt" };
 
   // ---------- 状态 ----------
+  const PROVIDER_NAMES = {
+    offline: "离线演示", openai: "OpenAI", qwen: "通义千问",
+    zhipu: "智谱AI", deepseek: "DeepSeek", moonshot: "月之暗面", siliconflow: "硅基流动",
+  };
   async function loadStatus() {
     try {
       const res = await fetch("/api/health");
       const data = await res.json();
       $("#badge-docs").textContent = `文档 ${data.stats.doc_count}`;
       $("#badge-chunks").textContent = `片段 ${data.stats.chunk_count}`;
-      const llm = data.llm_provider === "api" ? "LLM API" : "离线引用";
-      $("#badge-mode").textContent = `引擎：${llm} + ${data.embedding_provider === "api" ? "语义向量" : "离线向量"}`;
+      const pname = PROVIDER_NAMES[data.model_provider] || data.model_provider || "未知";
+      const llm = data.llm_engine === "api" ? `${pname} · ${data.llm_model}` : "离线引用模板";
+      $("#badge-mode").textContent = `模型：${llm} · 向量：${data.embedding_mode === "api" ? "语义" : "离线"}`;
+      $("#badge-mode").title = `模型 ${data.llm_model} | Embedding ${data.embedding_model}`;
     } catch (e) {
       $("#badge-mode").textContent = "引擎：服务未连接";
     }

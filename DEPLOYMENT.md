@@ -2,6 +2,8 @@
 
 Enterprise Document Intelligence Assistant 支持三种部署形态：**本地开发**、**Docker 容器**、**企业服务器（进程守护 + Nginx）**。本文档覆盖完整步骤、配置参数与故障排查。
 
+> 🇨🇳 **中国大陆部署**（镜像加速 / 国产大模型配置 / 常见问题）见 **[README_CN.md](README_CN.md)**。
+
 ---
 
 ## 1. 环境要求
@@ -119,6 +121,20 @@ server {
 
 ## 5. 配置参数说明（.env）
 
+### 5.1 AI Provider 抽象层（核心：国产模型一键切换）
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `MODEL_PROVIDER` | `offline` | 厂商切换：`offline` / `openai` / `qwen` / `zhipu` / `deepseek` / `moonshot` / `siliconflow` |
+| `LLM_API_KEY` | 空 | 对应厂商的 API 密钥（配置后即启用真实大模型） |
+| `LLM_BASE_URL` / `LLM_MODEL` | 空（用厂商默认） | 可选覆盖：自定义网关地址 / 模型名 |
+| `EMBEDDING_PROVIDER` | 空（自动推断） | `api` 显式启用语义向量 / `local` 强制离线向量 |
+| `EMBEDDING_API_KEY` | 空 | Embedding 密钥（DeepSeek / 月之暗面无 Embedding，自动回退离线） |
+
+> 示例：`MODEL_PROVIDER=qwen` + `LLM_API_KEY=sk-xxx` 即可启用通义千问，网关与模型名自动使用国内默认值。
+
+### 5.2 完整参数表
+
 | 参数 | 默认值 | 说明 |
 | --- | --- | --- |
 | `DATA_DIR` | `data` | 数据根目录（索引、上传临时区） |
@@ -126,18 +142,12 @@ server {
 | `INDEX_PATH` | `data/vector_index.json` | 向量索引文件路径 |
 | `CHUNK_SIZE` | `600` | 切片最大字符数 |
 | `CHUNK_OVERLAP` | `100` | 切片重叠字符数 |
-| `EMBEDDING_PROVIDER` | `local` | `local` 离线向量 / `api` 语义向量 |
-| `EMBEDDING_BASE_URL` | SiliconFlow | OpenAI 兼容 Embedding 网关 |
-| `EMBEDDING_API_KEY` | 空 | Embedding 密钥 |
-| `EMBEDDING_MODEL` | `BAAI/bge-m3` | Embedding 模型 |
+| `EMBEDDING_BASE_URL` | 厂商默认 | OpenAI 兼容 Embedding 网关 |
+| `EMBEDDING_MODEL` | 厂商默认 | Embedding 模型 |
 | `TOP_K` | `4` | 返回给 LLM 的证据片段数 |
 | `MIN_SCORE` | `0.24` | **检索阈值**：低于该值的片段不进答案（防幻觉核心参数） |
 | `HYBRID_WEIGHT_VECTOR` | `0.6` | 语义分权重（混合检索） |
 | `HYBRID_WEIGHT_LEXICAL` | `0.4` | 词法分权重（混合检索） |
-| `LLM_PROVIDER` | `offline` | `offline` 引用模板 / `api` 真实大模型 |
-| `LLM_BASE_URL` | SiliconFlow | OpenAI 兼容 Chat 网关 |
-| `LLM_API_KEY` | 空 | LLM 密钥 |
-| `LLM_MODEL` | `Qwen/Qwen2.5-7B-Instruct` | 问答模型 |
 | `LLM_TEMPERATURE` | `0.2` | 采样温度（越低越稳定） |
 | `HOST` / `PORT` | `0.0.0.0` / `8000` | 监听地址与端口 |
 | `MAX_UPLOAD_MB` | `30` | 上传文件大小上限 |

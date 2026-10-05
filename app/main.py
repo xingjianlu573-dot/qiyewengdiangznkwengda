@@ -36,10 +36,14 @@ class QueryBody(BaseModel):
 @app.get("/api/health")
 def health() -> dict:
     stats = pipeline.list_documents()
+    offline = not settings.using_real_llm
     return {
         "status": "ok",
-        "embedding_provider": settings.EMBEDDING_PROVIDER,
-        "llm_provider": settings.LLM_PROVIDER,
+        "model_provider": settings.provider,           # 实际生效的 AI 厂商
+        "embedding_mode": settings.embed_mode,          # api / local
+        "llm_engine": "offline" if offline else "api",
+        "llm_model": "offline（内置引用模板）" if offline else settings.llm_model,
+        "embedding_model": "local-hash（免密钥）" if settings.embed_mode == "local" else settings.embed_model,
         "stats": stats,
     }
 
@@ -108,7 +112,7 @@ def query_knowledge(body: QueryBody) -> dict:
             status_code=502,
             content={
                 "answer": f"知识服务暂时不可用：{exc}",
-                "citations": [], "grounded": False, "mode": settings.LLM_PROVIDER,
+                "citations": [], "grounded": False, "mode": settings.provider,
             },
         )
 

@@ -80,12 +80,13 @@ class OfflineAnswerer(LlmClient):
 # ---------------------------------------------------------------- API LLM
 class ApiLlmClient(LlmClient):
     def __init__(self, base_url: str, api_key: str, model: str,
-                 temperature: float = 0.2, timeout: int = 60):
+                 temperature: float = 0.2, timeout: int = 60, mode: str = "api"):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.model = model
         self.temperature = temperature
         self.timeout = timeout
+        self.mode = mode or "api"   # 标识实际厂商：qwen/zhipu/deepseek/moonshot/siliconflow/openai
 
     def answer(self, query: str, evidence: List[Dict]) -> Answer:
         if not evidence:
@@ -94,7 +95,7 @@ class ApiLlmClient(LlmClient):
                        f"建议：更换关键词重试，或先上传相关文档再提问。",
                 citations=[],
                 grounded=False,
-                mode="api",
+                mode=self.mode,
             )
 
         docs_block = self._build_context(evidence)
@@ -126,7 +127,7 @@ class ApiLlmClient(LlmClient):
         if evidence and not used_indices:
             content = content + f"\n\n（依据来源：[1] {evidence[0]['doc_name']}）"
 
-        return Answer(answer=content, citations=evidence, grounded=True, mode="api")
+        return Answer(answer=content, citations=evidence, grounded=True, mode=self.mode)
 
     @staticmethod
     def _build_context(evidence: List[Dict]) -> str:
@@ -175,12 +176,14 @@ def _pick_sentences(text: str, query: str, max_len: int = 180) -> str:
 
 # ---------------------------------------------------------------- 工厂
 def get_llm_client() -> LlmClient:
+    """按 MODEL_PROVIDER 解析实际厂商并实例化客户端（免密钥时回退离线模式）。"""
     if settings.using_real_llm:
         return ApiLlmClient(
-            settings.LLM_BASE_URL,
+            settings.llm_base_url,
             settings.LLM_API_KEY,
-            settings.LLM_MODEL,
+            settings.llm_model,
             temperature=settings.LLM_TEMPERATURE,
             timeout=settings.LLM_TIMEOUT,
+            mode=settings.provider,
         )
     return OfflineAnswerer()

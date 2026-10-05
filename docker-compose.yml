@@ -1,3 +1,16 @@
+# ============================================================
+# Enterprise Document Intelligence Assistant — Docker Compose
+# 国内部署优化版：新增 MODEL_PROVIDER 一键切换国产大模型。
+#
+# 快速开始（国内环境）：
+#   1. 配置 Docker 镜像加速器（/etc/docker/daemon.json，见 README_CN.md）
+#   2. docker compose up -d --build
+#   3. 浏览器打开 http://服务器IP:8000
+#
+# 切换到国产大模型：编辑下面 environment，例如
+#   MODEL_PROVIDER=qwen   （通义千问；配合 LLM_API_KEY）
+#   再 docker compose up -d 重建即可，无需改任何代码。
+# ============================================================
 version: "3.8"
 
 services:
@@ -7,9 +20,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # 离线演示模式（无需密钥）；接入真实 LLM/Embedding 时在 .env 中配置并取消注释
-      - EMBEDDING_PROVIDER=local
-      - LLM_PROVIDER=offline
+      # AI Provider（offline=免密钥演示 | qwen/zhipu/deepseek/moonshot/siliconflow/openai）
+      - MODEL_PROVIDER=offline
+      # 取消注释并填入对应厂商密钥即可启用真实大模型
+      # - LLM_API_KEY=sk-xxxxxxxx
+      # 可选：显式指定 Embedding（留空则由系统按 Provider 能力自动推断）
+      # - EMBEDDING_PROVIDER=api
+      # - EMBEDDING_API_KEY=sk-xxxxxxxx
+      # 检索参数（防幻觉）
       - TOP_K=4
       - MIN_SCORE=0.24
     volumes:

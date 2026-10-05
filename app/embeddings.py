@@ -105,11 +105,18 @@ class ApiEmbeddingProvider(EmbeddingProvider):
 
 # ---------------------------------------------------------------- 工厂
 def get_embedding_provider() -> EmbeddingProvider:
+    """按 MODEL_PROVIDER / EMBEDDING_PROVIDER 解析向量化方式。
+
+    优先顺序：
+    1. 显式 EMBEDDING_PROVIDER=api 且密钥有效 → 调用 Provider 的 Embedding 接口；
+    2. Provider 具备 Embedding 能力（openai/qwen/zhipu/siliconflow）且有密钥 → api；
+    3. 其余（DeepSeek/月之暗面无 Embedding，或未配密钥）→ 本地离线向量。
+    """
     if settings.using_real_embedding:
         return ApiEmbeddingProvider(
-            settings.EMBEDDING_BASE_URL,
+            settings.embed_base_url,
             settings.EMBEDDING_API_KEY,
-            settings.EMBEDDING_MODEL,
+            settings.embed_model,
             timeout=settings.LLM_TIMEOUT,
         )
     return LocalEmbeddingProvider(dim=settings.LOCAL_EMBED_DIM)
