@@ -1,0 +1,9 @@
+# 密钥与本地数据不入库
+.env
+data/vector_index.json
+data/uploads/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store

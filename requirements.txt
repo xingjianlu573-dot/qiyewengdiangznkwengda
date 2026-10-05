@@ -1,0 +1,10 @@
+# 运行依赖（全部为通用开源库；离线演示模式无需密钥即可运行）
+fastapi>=0.110
+uvicorn>=0.27
+python-multipart>=0.0.7   # FastAPI 文件上传
+pymupdf>=1.24        # PDF 解析
+python-docx>=1.1     # Word 解析
+requests>=2.31       # LLM / Embedding API 调用
+python-dotenv>=1.0   # .env 配置加载（可选，未安装时自动跳过）
+
+# 如需接入真实 LLM / Embedding API，另需准备对应服务的 API Key（见 .env.example）

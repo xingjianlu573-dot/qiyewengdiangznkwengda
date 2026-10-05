@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise Document Intelligence Assistant · 企业文档智能问答</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">EDI</span>
+      <div>
+        <h1>企业文档智能问答系统</h1>
+        <p class="subtitle">Enterprise Document Intelligence Assistant · 上传文档，构建可溯源的企业知识库</p>
+      </div>
+    </div>
+    <div class="status-badges">
+      <span class="badge" id="badge-docs" title="知识库中文档数量">文档 0</span>
+      <span class="badge" id="badge-chunks" title="已切分的知识片段数量">片段 0</span>
+      <span class="badge" id="badge-mode" title="当前回答引擎">引擎：离线演示</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- 左侧：上传 + 文档管理 -->
+    <aside class="sidebar">
+      <section class="card upload-card">
+        <h2>上传文档</h2>
+        <p class="hint">支持 PDF / Word / Markdown，自动解析 → 切片 → 向量化 → 入库</p>
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="file-input" multiple accept=".pdf,.docx,.doc,.md,.markdown,.txt" hidden />
+          <div class="dz-inner">
+            <strong>点击选择或拖拽文件到此处</strong>
+            <span>.pdf / .docx / .md / .txt</span>
+          </div>
+        </div>
+        <div id="upload-status" class="upload-status"></div>
+      </section>
+
+      <section class="card docs-card">
+        <h2>知识库文档</h2>
+        <ul id="doc-list" class="doc-list">
+          <li class="empty">暂无文档，请先上传</li>
+        </ul>
+      </section>
+    </aside>
+
+    <!-- 右侧：对话 -->
+    <section class="chat-area">
+      <div class="chat-head">
+        <h2>文档问答</h2>
+        <span class="chat-tip">回答仅基于知识库内容，并标注来源，避免幻觉</span>
+      </div>
+      <div class="chat-scroll" id="chat-scroll">
+        <div class="msg assistant intro">
+          <div class="bubble">
+            <p>你好，我是企业文档问答助手。请在上传文档后向我提问，例如：</p>
+            <ul>
+              <li>公司网络突然断网，应该按什么顺序排查？</li>
+              <li>电脑出现蓝屏代码 0x0000007B 怎么处理？</li>
+              <li>VPN 提示认证失败怎么办？</li>
+              <li>Outlook 收不到邮件怎么排查？</li>
+            </ul>
+            <p class="tiny">每次回答都会标注引用来源（文档 + 章节），信息不足时会明确告知，绝不编造。</p>
+          </div>
+        </div>
+      </div>
+      <div class="composer">
+        <textarea id="query-input" rows="2" placeholder="输入你的问题，Enter 发送，Shift+Enter 换行"></textarea>
+        <button id="send-btn">发送</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>回答内容由 AI 基于企业文档生成，仅供参考，重要操作请以原始文档为准。</span>
+    <span class="pipe">|</span>
+    <span>检索阈值过滤 · 引用溯源 · 未知即拒答 —— 三重防幻觉机制</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

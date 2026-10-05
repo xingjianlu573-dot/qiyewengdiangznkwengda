@@ -1,0 +1,60 @@
+Enterprise Document Intelligence Assistant 启动中…
+  Embedding: local | LLM: offline
+  知识库索引：C:\Users\ZhuanZ\Doubao\chats\2026-10-05\new-chat-2\enterprise-document-intelligence\data\vector_index.json
+  访问地址：http://127.0.0.1:8000
+
+warning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.
+INFO:     127.0.0.1:60400 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60401 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60402 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60403 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60404 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60405 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60406 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60407 - "POST /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60408 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60409 - "DELETE /api/documents/b4448c6f7eaf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60410 - "POST /api/documents HTTP/1.1" 415 Unsupported Media Type
+INFO:     127.0.0.1:60411 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60414 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60415 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60416 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60417 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60437 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60438 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60439 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60440 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60441 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60442 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60443 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60444 - "POST /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60445 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60446 - "DELETE /api/documents/cd58d4d19169 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60447 - "POST /api/documents HTTP/1.1" 415 Unsupported Media Type
+INFO:     127.0.0.1:60448 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60457 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60457 - "GET /styles.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60458 - "GET /app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60457 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60458 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60458 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60482 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60483 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60483 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60502 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60501 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60501 - "POST /api/query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60537 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60536 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60536 - "POST /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60536 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60537 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60545 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60546 - "DELETE /api/documents/01af7851877a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60547 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60585 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60585 - "GET /styles.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60586 - "GET /app.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:60586 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60585 - "GET /api/documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60601 - "GET /api/health HTTP/1.1" 200 OK

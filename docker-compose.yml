@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  edi:
+    build: .
+    container_name: edi-assistant
+    ports:
+      - "8000:8000"
+    environment:
+      # 离线演示模式（无需密钥）；接入真实 LLM/Embedding 时在 .env 中配置并取消注释
+      - EMBEDDING_PROVIDER=local
+      - LLM_PROVIDER=offline
+      - TOP_K=4
+      - MIN_SCORE=0.24
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
