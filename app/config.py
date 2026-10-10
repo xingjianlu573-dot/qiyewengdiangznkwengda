@@ -117,10 +117,18 @@ class Settings:
     LOCAL_EMBED_DIM: int = _get_int("LOCAL_EMBED_DIM", 512)  # 离线向量的固定维度
 
     # ---------- 检索 ----------
-    TOP_K: int = _get_int("TOP_K", 4)                       # 返回给 LLM 的片段数
+    TOP_K: int = _get_int("TOP_K", 4)                       # 最终给 LLM 的片段数
     MIN_SCORE: float = _get_float("MIN_SCORE", 0.24)        # 相似度阈值：低于该值的片段不进答案（防幻觉核心）
     HYBRID_WEIGHT_VECTOR: float = _get_float("HYBRID_WEIGHT_VECTOR", 0.6)   # 语义分权重
     HYBRID_WEIGHT_LEXICAL: float = _get_float("HYBRID_WEIGHT_LEXICAL", 0.4)  # 词法分权重
+
+    # ---------- 重排序（Rerank，紧跟主流 RAG 架构「检索→重排→生成」） ----------
+    # offline（默认，免密钥）：细粒度词法+结构信号精排
+    # llm（需配 LLM_API_KEY）：调用大模型按相关性重排，质量最高
+    # none：关闭重排
+    RERANK_MODE: str = os.getenv("RERANK_MODE", "offline")
+    # 一阶段粗排召回候选数（默认 TOP_K*2=8），重排后取 TOP_K 给 LLM
+    RERANK_CANDIDATES: int = _get_int("RERANK_CANDIDATES", 8)
 
     # ---------- LLM 显式覆盖（可选；未设置时使用 Provider 默认值） ----------
     LLM_BASE_URL: str = os.getenv("LLM_BASE_URL", "")

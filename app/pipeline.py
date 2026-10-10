@@ -14,6 +14,7 @@ from .chunker import chunk_blocks
 from .embeddings import get_embedding_provider
 from .vector_store import VectorStore
 from .retriever import hybrid_search
+from .reranker import get_reranker
 from .llm import get_llm_client, Answer
 
 
@@ -97,18 +98,25 @@ def ask(query: str) -> Dict:
     provider = get_embedding_provider()
     q_embedding = provider.embed_texts([query])[0]
 
-    # 2. 混合检索 + 阈值过滤
-    evidence = hybrid_search(
+    # 2. 混合检索（粗排：召回更多候选）+ 阈值过滤
+    candidates = hybrid_search(
         query, store.chunks, q_embedding,
-        top_k=settings.TOP_K,
+        top_k=settings.RERANK_CANDIDATES,
         min_score=settings.MIN_SCORE,
         w_vector=settings.HYBRID_WEIGHT_VECTOR,
         w_lexical=settings.HYBRID_WEIGHT_LEXICAL,
     )
+
+    # 2.5 重排序（精排）：粗排候选 → Rerank → 取 Top-K（主流 RAG 架构「检索→重排→生成」）
+    reranker = get_reranker()
+    if reranker and len(candidates) > settings.TOP_K:
+        candidates = reranker.rerank(query, candidates)
+    evidence = candidates[:settings.TOP_K]
 
     # 3. LLM 作答（引用约束）
     llm = get_llm_client()
     answer = llm.answer(query, evidence)
     result = answer.to_dict()
     result["retrieved_count"] = len(evidence)
+    result["rerank_mode"] = settings.RERANK_MODE
     return result

@@ -153,6 +153,27 @@ docker compose up -d --build
 
 > 说明：DeepSeek / 月之暗面暂不提供 Embedding 接口，系统会自动使用本地离线向量（检索能力仍可用，推荐配合 `MIN_SCORE=0.24` 防幻觉阈值）。
 
+### 检索重排序 Rerank 配置（紧跟主流 RAG 架构「检索→重排→生成」）
+
+系统内置重排序层：先由混合检索粗排召回 Top-C 候选，再经 Rerank 精排后取 Top-K 交给大模型，进一步提升「喂给 LLM 的片段质量」→ 回答更准、引用更稳。
+
+| 配置 | 取值 | 说明 |
+| --- | --- | --- |
+| `RERANK_MODE` | `offline`（默认） | 免密钥精排：查询词频 + 章节标题命中 + 位置加权，零成本 |
+| `RERANK_MODE` | `llm` | 大模型按相关性重排（需 `LLM_API_KEY`，质量最高） |
+| `RERANK_MODE` | `none` | 关闭重排（回到一阶段检索） |
+| `RERANK_CANDIDATES` | `8`（默认） | 一阶段粗排召回候选数（默认 TOP_K×2） |
+
+```bash
+# 免密钥精排（默认，无需配置）
+python scripts/run.py
+
+# 大模型重排（企业正式使用）
+# .env: RERANK_MODE=llm + LLM_API_KEY=sk-xxx
+```
+
+检索质量可量化评测：`python scripts/evaluate.py` 输出命中率 Hit Rate 与库外拒答率（内置 12 个命中问题 + 3 个库外问题），可用 `--rerank none/offline/llm` 对比不同模式。
+
 ---
 
 ## 五、常见问题（FAQ）
@@ -173,10 +194,16 @@ docker compose up -d --build
 服务端与浏览器均使用 UTF-8；若在 Windows 命令行直接运行时中文乱码，执行 `chcp 65001` 或使用 Docker 部署。
 
 **Q6：如何知道当前用的是哪个模型？**
-访问 `http://服务器IP:8000/api/health`，查看 `model_provider` / `llm_model` / `embedding_model` 字段。
+访问 `http://服务器IP:8000/api/health`，查看 `model_provider` / `llm_model` / `embedding_model` / `rerank_mode` 字段。
 
 **Q7：能对接其他模型厂商吗？**
 可以。所有国内厂商均为 OpenAI 兼容接口，设置 `MODEL_PROVIDER=openai` 并自定义 `LLM_BASE_URL` / `LLM_MODEL` 即可接入任意兼容网关（如讯飞星火、百川、Minimax 等）。
+
+**Q8：Rerank 是什么？默认开着吗？**
+Rerank 是对检索结果的二次精排：先粗排召回更多候选，再按更细粒度信号（词频/标题命中/位置，或大模型打分）把最相关的片段提到最前面，LLM 只吃到高质量 Top-K。默认 `RERANK_MODE=offline` 免密钥开启；想关掉设 `RERANK_MODE=none`，想用大模型重排设 `RERANK_MODE=llm` 并配 `LLM_API_KEY`。
+
+**Q9：怎么验证检索效果？**
+运行 `python scripts/evaluate.py`，输出 12 题命中率（当前 92%）与 3 个库外问题拒答率（当前 100%）；也可加 `--rerank none` 与默认 offline 对比，量化重排带来的变化。
 
 ---
 

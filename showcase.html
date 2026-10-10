@@ -106,7 +106,7 @@
     background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%232F7D46" stroke-width="2.4"%3E%3Cpath d="M20 6 9 17l-5-5"/%3E%3C/svg%3E') center/contain no-repeat; }
 
   /* ---------- RAG 管线流程 ---------- */
-  .flow { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; margin-top: 8px; }
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 8px; }
   .flow .step { position: relative; padding: 22px 14px 18px; }
   .flow .step .idx { font-size: 12px; font-weight: 800; color: var(--accent); }
   .flow .step h4 { font-size: 15px; font-weight: 700; margin: 8px 0 6px; }
@@ -144,7 +144,7 @@
   .shot .cap { padding: 10px 14px; font-size: 12.5px; color: var(--muted); }
 
   /* ---------- 测试指标 ---------- */
-  .tests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .tests { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
   .tcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
   .tcard .rate { font-size: 34px; font-weight: 800; color: var(--ok); font-variant-numeric: tabular-nums; }
   .tcard .name { font-weight: 700; margin-top: 6px; }
@@ -175,13 +175,14 @@
     .card li { font-size: 15px; }
     .grid4 { grid-template-columns: repeat(2, 1fr); }
     .gallery { grid-template-columns: repeat(2, 1fr); }
-    .tests { grid-template-columns: 1fr; }
+    .tests { grid-template-columns: repeat(2, 1fr); }
     .compare { grid-template-columns: 1fr; }
     nav.links { display: none; }
   }
   @media (max-width: 560px) {
     .grid4 { grid-template-columns: 1fr; }
     .gallery { grid-template-columns: 1fr; }
+    .tests { grid-template-columns: 1fr; }
     .hero { padding: 60px 0 44px; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -271,10 +272,11 @@
       <div class="step"><div class="idx">02</div><h4>智能解析</h4><p>PDF 页内章节识别、Word 标题样式、Markdown 标题层级</p></div>
       <div class="step"><div class="idx">03</div><h4>章节感知切片</h4><p>600 字 + 100 字重叠，保留章节/页码溯源元数据</p></div>
       <div class="step"><div class="idx">04</div><h4>向量化</h4><p>语义 Embedding 或免密钥离线向量，JSON 本地持久化</p></div>
-      <div class="step"><div class="idx">05</div><h4>混合检索</h4><p>语义 60% + 词法 40%，阈值过滤低相关片段</p></div>
-      <div class="step"><div class="idx">06</div><h4>AI 回答 + 引用</h4><p>大模型依据证据作答，强制 [来源编号] 标注并校验一致性</p></div>
+      <div class="step"><div class="idx">05</div><h4>混合检索</h4><p>语义 60% + 词法 40%，粗排召回 Top-8 候选</p></div>
+      <div class="step"><div class="idx">06</div><h4>Rerank 重排</h4><p>精排候选（词频/标题/位置加权，或大模型打分），阈值过滤后取 Top-4</p></div>
+      <div class="step"><div class="idx">07</div><h4>AI 回答 + 引用</h4><p>大模型依据证据作答，强制 [来源编号] 标注并校验一致性</p></div>
     </div>
-    <div class="pipeline-note">问答链路：员工提问 → 问题向量化 → 混合检索 → 相似度阈值门禁（MIN_SCORE=0.24）→ Top-4 证据片段 → LLM 依据证据作答 → 前端渲染回答与来源卡片。零依赖向量数据库，索引为单 JSON 文件，可整体备份迁移。</div>
+    <div class="pipeline-note">问答链路：员工提问 → 问题向量化 → 混合检索（粗排召回 Top-8）→ Rerank 精排 → 相似度阈值门禁（MIN_SCORE=0.24）→ Top-4 证据片段 → LLM 依据证据作答 → 前端渲染回答与来源卡片。零依赖向量数据库，索引为单 JSON 文件，可整体备份迁移。</div>
   </div>
 </section>
 
@@ -289,7 +291,7 @@
       <div class="mini">
         <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round"><path d="M12 3v3m6.4 2.6 2.1 2.1M21 12h-3M4.6 7.6 2.5 9.7M3 12h3"/><circle cx="12" cy="12" r="4"/></svg></span>
         <h4>检索质量门禁</h4>
-        <p>混合检索 + 相似度阈值：低相关片段根本不会进入回答，从源头切断幻觉。</p>
+        <p>混合检索 + Rerank 精排 + 相似度阈值：低相关片段根本不会进入回答，从源头切断幻觉。</p>
       </div>
       <div class="mini">
         <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
@@ -397,6 +399,7 @@
       <div class="tcard"><div class="rate">33 / 33</div><div class="name">管线端到端自测</div><div class="desc">解析 → 切片 → 入库 → 检索 → 引用 → 拒答 → 删除，全链路断言通过。</div></div>
       <div class="tcard"><div class="rate">50 / 50</div><div class="name">AI Provider 抽象层测试</div><div class="desc">六家厂商网关/模型解析、Embedding 能力推断、越界引用拦截、免密钥回退。</div></div>
       <div class="tcard"><div class="rate">18 项</div><div class="name">在线 API 冒烟验证</div><div class="desc">上传 / 删除 / 格式拦截 / 四类典型问题命中 / 库外拒答，全链路通过。</div></div>
+      <div class="tcard"><div class="rate">92% / 100%</div><div class="name">检索评测（Hit Rate）</div><div class="desc">内置 12 个命中问题 + 3 个库外问题：命中率 92%、库外拒答率 100%，`scripts/evaluate.py` 一键复现。</div></div>
     </div>
   </div>
 </section>

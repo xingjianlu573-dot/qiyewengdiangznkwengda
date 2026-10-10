@@ -53,6 +53,7 @@ def health() -> dict:
         "status": "ok",
         "model_provider": settings.provider,           # 实际生效的 AI 厂商
         "embedding_mode": settings.embed_mode,          # api / local
+        "rerank_mode": settings.RERANK_MODE,            # offline / llm / none
         "llm_engine": "offline" if offline else "api",
         "llm_model": "offline（内置引用模板）" if offline else settings.llm_model,
         "embedding_model": "local-hash（免密钥）" if settings.embed_mode == "local" else settings.embed_model,

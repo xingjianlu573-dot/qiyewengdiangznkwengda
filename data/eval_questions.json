@@ -1,0 +1,23 @@
+{
+  "description": "EDI 检索评测集：命中率（Hit Rate）与库外拒答率。问题全部基于演示知识库真实内容构造。",
+  "top_k_default": 4,
+  "queries": [
+    { "question": "电脑蓝屏代码 0x0000007B 怎么处理", "expect_doc": "02-Windows故障处理.md" },
+    { "question": "Windows 开机反复重启应该怎么排查", "expect_doc": "02-Windows故障处理.md" },
+    { "question": "公司网络突然断网，应该按什么顺序排查", "expect_doc": "01-网络故障SOP.md" },
+    { "question": "网络很慢或者丢包怎么定位问题", "expect_doc": "01-网络故障SOP.md" },
+    { "question": "VPN 提示认证失败怎么办", "expect_doc": "03-VPN配置.docx" },
+    { "question": "VPN 无法连接到服务器怎么处理", "expect_doc": "03-VPN配置.docx" },
+    { "question": "Outlook 收不到邮件怎么排查", "expect_doc": "04-邮箱问题.pdf" },
+    { "question": "邮件被当成垃圾邮件拦了怎么办", "expect_doc": "04-邮箱问题.pdf" },
+    { "question": "电脑开机后反复蓝屏重启，怀疑是硬盘有问题", "expect_doc": "02-Windows故障处理.md" },
+    { "question": "只能上内网，外网全部不通", "expect_doc": "01-网络故障SOP.md" },
+    { "question": "在家连不上公司的远程办公网络", "expect_doc": "03-VPN配置.docx" },
+    { "question": "客户说发我邮件但我一直没收到", "expect_doc": "04-邮箱问题.pdf" }
+  ],
+  "out_of_scope": [
+    "怎么申请年假和报销差旅费",
+    "公司食堂本周菜单是什么",
+    "员工公积金缴纳比例是多少"
+  ]
+}

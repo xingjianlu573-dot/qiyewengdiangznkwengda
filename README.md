@@ -13,9 +13,9 @@
 
 ---
 
-> **面向企业员工的文档知识问答助手**：上传 PDF / Word / Markdown，自动完成「解析 → 切片 → 向量化 → 检索 → AI 回答 → 引用溯源」，内置三重防幻觉机制。
+> **面向企业员工的文档知识问答助手**：上传 PDF / Word / Markdown，自动完成「解析 → 切片 → 向量化 → 检索 → **重排序（Rerank）** → AI 回答 → 引用溯源」，内置三重防幻觉机制。
 >
-> **企业 AI 落地视角**：一套代码同时支持 **RAG 知识问答**、**国产大模型一键切换**（通义千问 / 智谱 / DeepSeek / 月之暗面 / 硅基流动）与 **中国大陆零外网依赖部署** —— 前端零 CDN、零 npm、离线可用、数据本地化。
+> **企业 AI 落地视角**：一套代码同时支持 **RAG 知识问答**、**检索重排序（检索→重排→生成）**、**国产大模型一键切换**（通义千问 / 智谱 / DeepSeek / 月之暗面 / 硅基流动）与 **中国大陆零外网依赖部署** —— 前端零 CDN、零 npm、离线可用、数据本地化。
 >
 > 本项目由开源项目 **n8n-rag-chatbot**（n8n + Qdrant + Gemini 原型）改造而来：从可视化工作流升级为**可独立部署、可离线演示、可接入任意大模型网关**的企业级 RAG 应用。
 >
@@ -28,7 +28,9 @@
 | 能力 | 说明 |
 | --- | --- |
 | 📤 多格式上传 | PDF / Word（.docx）/ Markdown（.md / .txt），拖拽或选择文件，自动入库 |
-| 🔄 完整 RAG 管线 | 文档解析 → 章节感知切片 → 向量化 → 混合检索 → LLM 回答，全链路代码实现 |
+| 🔄 完整 RAG 管线 | 文档解析 → 章节感知切片 → 向量化 → 混合检索 → **重排序（Rerank）** → LLM 回答，全链路代码实现 |
+| 🎯 检索重排序 | 粗排召回 → **Rerank 精排**（offline 免密钥 / llm 大模型重排）→ Top-K，紧跟主流「检索→重排→生成」架构 |
+| 📏 检索可评测 | 内置评测集与脚本（`scripts/evaluate.py`）：命中率 Hit Rate + 库外拒答率一键跑分 |
 | 📌 引用溯源 | 每条回答标注 **[来源编号]**，前端展示来源卡片：文档名、章节、页码、匹配度、原文片段 |
 | 🛡️ 防幻觉三重机制 | ① 相似度阈值过滤低相关片段 ② 强约束提示词「仅依据文档作答，不知道就明说」③ 库外问题直接拒答并给出建议 |
 | 🧠 多厂商引擎 | **国产大模型一键切换**（`MODEL_PROVIDER=qwen/zhipu/deepseek/moonshot/siliconflow`）+ 免密钥离线演示模式 |
@@ -65,10 +67,12 @@
 │  │ Markdown │  │ +重叠窗口  │  │  Embedding │  │                  │  │
 │  └──────────┘  └───────────┘  └────────────┘  └──────────────────┘  │
 │                                                                      │
-│  ┌───────────────────────────────────────────────────────────────┐   │
-│  │  检索层：混合检索（语义余弦 60% + 词法 BM25-lite 40%）            │   │
-│  │          ↓ 相似度阈值过滤（MIN_SCORE=0.24）↓ Top-K=4            │   │
-│  └───────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │  检索层：混合检索（语义余弦 60% + 词法 BM25-lite 40%）        │   │
+│  │          ↓ 粗排召回 Top-C 候选（RERANK_CANDIDATES=8）          │   │
+│  │  重排层：Rerank 精排（offline 词法+结构信号 / llm 大模型打分） │   │
+│  │          ↓ 阈值过滤（MIN_SCORE=0.24）↓ Top-K=4                │   │
+│  └─────────────────────────────────────────────────────────────┘   │
 │                          ↓ 证据片段 + 溯源元数据                      │
 │  ┌───────────────────────────────────────────────────────────────┐   │
 │  │  LLM 层：引用约束提示词（系统级防幻觉）+ [来源编号] 一致性校验    │   │
@@ -83,7 +87,9 @@
 员工提问
    │
    ▼
-Embedding(问题) ──► 混合检索：语义余弦 + 词法分
+Embedding(问题) ──► 混合检索：语义余弦 + 词法分（粗排召回 Top-8）
+   │                     │
+   │              Rerank 精排：offline 词频/标题/位置加权，或 llm 大模型打分
    │                     │
    │              相似度 < 0.24 → 过滤（不进入回答，防止低质引用）
    │                     │
@@ -224,7 +230,7 @@ LLM_API_KEY=sk-xxx
 ### 2. 可控 —— 降低幻觉
 | 机制 | 实现 |
 | --- | --- |
-| 检索质量门禁 | 混合检索 + `MIN_SCORE` 阈值：低相关片段根本不进回答，从源头切断幻觉 |
+| 检索质量门禁 | 混合检索 + **Rerank 精排** + `MIN_SCORE` 阈值：低相关片段根本不进回答，从源头切断幻觉 |
 | 强约束提示词 | 系统级 Prompt：只准用文档片段作答、不得编造、不确定必须明说（见 `app/llm.py`） |
 | 引用一致性校验 | LLM 输出的 `[n]` 编号必须落在真实证据范围内，越界即拦截（API 模式） |
 | 知识库外拒答 | 检索不到足够相关内容时明确告知，不生成「看似合理」的编造答案 |
@@ -245,8 +251,8 @@ LLM_API_KEY=sk-xxx
 | POST | `/api/documents` | 上传文档（multipart，白名单校验 .pdf/.docx/.doc/.md/.markdown/.txt，限流 30MB，防路径穿越） |
 | GET | `/api/documents` | 知识库文档列表（含片段数与格式统计） |
 | DELETE | `/api/documents/{doc_id}` | 删除文档并同步清理索引片段 |
-| POST | `/api/query` | 文档问答：`{"query": "..."}` → 回答 + 引用来源 |
-| GET | `/api/health` | 健康检查（引擎模式 + 知识库统计） |
+| POST | `/api/query` | 文档问答：`{"query": "..."}` → 回答 + 引用来源（含 Rerank 精排） |
+| GET | `/api/health` | 健康检查（引擎模式 + rerank_mode + 知识库统计） |
 
 示例：
 
@@ -269,18 +275,21 @@ enterprise-document-intelligence/
 │   ├── chunker.py            # 切片层：章节感知 + 固定长度 + 重叠窗口 + 溯源元数据
 │   ├── embeddings.py         # 向量化层：离线哈希向量 / OpenAI 兼容 Embedding
 │   ├── vector_store.py       # 向量库：JSON 持久化 + 原子写入 + 按文档删除
-│   ├── retriever.py          # 检索层：混合检索（语义 60% + 词法 40%）+ 阈值过滤
+│   ├── retriever.py          # 检索层：混合检索（语义 60% + 词法 40%）粗排召回
+│   ├── reranker.py           # 重排层：offline 词法+结构信号精排 / llm 大模型重排 / 工厂
 │   ├── llm.py                # LLM 层：引用约束提示词 + 离线引用模板 + 一致性校验
-│   └── pipeline.py           # 管线编排：入库与问答的统一入口
+│   └── pipeline.py           # 管线编排：入库与问答的统一入口（粗排→重排→Top-K）
 ├── static/                   # 前端（原生 HTML/CSS/JS，无框架依赖）
 ├── data/
 │   ├── knowledge_base/       # 演示知识库（IT 运维，PDF/Word/Markdown）
+│   ├── eval_questions.json   # 检索评测集（命中问题 + 库外问题）
 │   └── vector_index.json     # 向量索引（入库后生成）
 ├── scripts/
 │   ├── run.py                # 一键启动
 │   ├── ingest.py             # 离线灌库 CLI（--dir / --file / --reset）
 │   ├── build_demo_kb.py      # 生成演示 Word/PDF 文档
-│   └── api_smoke_test.py     # API 冒烟验证
+│   ├── api_smoke_test.py     # API 冒烟验证
+│   └── evaluate.py           # 检索评测：Hit Rate + 库外拒答率（--rerank 模式对比）
 ├── tests/
 │   ├── test_pipeline.py      # 管线端到端自测（33 项断言）
 │   └── test_providers.py     # AI Provider 抽象层测试（50 项断言）
@@ -298,21 +307,24 @@ enterprise-document-intelligence/
 python tests/test_pipeline.py       # 管线端到端自测（33 项断言，全部通过）
 python tests/test_providers.py      # AI Provider 抽象层测试（50 项断言，全部通过）
 python scripts/api_smoke_test.py    # 在线 API 冒烟验证（需服务已启动）
+python scripts/evaluate.py          # 检索评测：命中率 Hit Rate + 库外拒答率（12 题命中 92% / 拒答 100%）
 ```
 
 覆盖范围：三种格式解析、切片与元数据、入库持久化、四类典型问题检索命中、引用编号与证据一致、**库外问题拒答（幻觉抑制）**、文档删除与索引清理、非法格式拦截，以及 **6 家模型厂商的网关/模型名解析、Embedding 能力推断、越界引用拦截、免密钥回退离线**。
-完整报告见 [docs/TEST_REPORT.md](docs/TEST_REPORT.md)。
+完整报告见 [docs/TEST_REPORT.md](docs/TEST_REPORT.md)；检索评测报告见 [docs/EVAL_REPORT.md](docs/EVAL_REPORT.md)。
 
 ---
 
 ## 🔭 路线图
 
-- [ ] Rerank 重排序（bge-reranker）提升检索精度
+- [x] Rerank 重排序（offline 免密钥 / llm 大模型重排，`RERANK_MODE` 一键切换）
+- [x] 检索评测集（Hit Rate + 库外拒答率，`scripts/evaluate.py`）
+- [ ] 接入 bge-reranker 交叉编码模型（更大知识库上精度更高）
+- [ ] 评测指标扩展（Recall / Precision / Faithfulness）
 - [ ] 会话记忆（多轮上下文）
 - [ ] 流式回答（SSE）
 - [ ] 用户权限与文档级 ACL（企业多部门隔离）
 - [ ] 索引增量更新与版本化
-- [ ] 评测集（Recall / Precision / Faithfulness）
 
 ---
 
@@ -320,7 +332,7 @@ python scripts/api_smoke_test.py    # 在线 API 冒烟验证（需服务已启�
 
 - **后端**：Python · FastAPI · Uvicorn
 - **解析**：PyMuPDF（PDF）· python-docx（Word）
-- **检索**：纯 Python 混合检索（语义余弦 + BM25-lite）+ 阈值门禁
+- **检索**：纯 Python 混合检索（语义余弦 + BM25-lite）粗排 + **Rerank 重排**（offline / llm）+ 阈值门禁
 - **RAG / Agent / Workflow**：文档解析→切片→向量化→混合检索→LLM 回答→引用溯源的完整自动化工作流（`app/pipeline.py` 编排）
 - **LLM / Embedding**：**AI Provider 抽象层**（`MODEL_PROVIDER` 一键切换国产模型：通义千问 / 智谱 / DeepSeek / 月之暗面 / 硅基流动 / OpenAI）+ 内置免密钥离线模式
 - **前端**：原生 HTML / CSS / JavaScript（单页应用，零构建、零 CDN）
