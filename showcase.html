@@ -483,12 +483,12 @@
     timer = setTimeout(function () { toast.classList.remove("show"); }, 4200);
   }
   document.getElementById("btn-demo").addEventListener("click", function () {
-    // 服务已运行时直接进入功能演示页；否则给出运行指引（避免死链/僵尸按钮）
+    // 本地后端运行时进入真实功能演示页；线上环境跳转到已发布的在线演示页（可点击、可交互）
     if (location.protocol === "http:" && /(localhost|127\.0\.0\.1)/.test(location.host)) {
       location.href = "/demo.html";
       return;
     }
-    show("功能演示页（真实操作）需本地后端：在本仓库执行 python scripts/run.py，然后访问 http://127.0.0.1:8000/demo.html 在线体验上传、问答与引用溯源；或查看仓库 static/demo.html 源码。");
+    location.href = "https://4kysy3b9xsj4q.doubaoapps.com/app/app_17ft55416rc";
   });
 })();
 </script>

@@ -1,0 +1,352 @@
+# -*- coding: utf-8 -*-
+"""生成 static/demo-online.html：内置真实问答数据的静态可交互演示页。
+数据来自本地后端真实运行结果（_demo_data.json），发布到豆包后无需后端即可点击演示。
+"""
+import json
+import os
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+DATA = json.load(open(os.path.join(BASE, "_demo_data.json"), encoding="utf-8"))
+
+KPI = {
+    "docs": 4, "chunks": 33, "model": "离线（内置示例）",
+    "doclist": [
+        {"fmt": "MD", "name": "01-网络故障SOP.md", "n": 13},
+        {"fmt": "MD", "name": "02-Windows故障处理.md", "n": 8},
+        {"fmt": "Word", "name": "03-VPN配置.docx", "n": 5},
+        {"fmt": "PDF", "name": "04-邮箱问题.pdf", "n": 7},
+    ],
+}
+
+SHOWCASE_URL = "https://4kysy3b9xsj4q.doubaoapps.com/app/app_17ft1zenp1f"
+
+HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>在线功能演示 · Enterprise Document Intelligence Assistant</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E6E6E'/%3E%3Ctext x='16' y='22' font-size='14' font-family='sans-serif' font-weight='700' fill='white' text-anchor='middle'%3EEDI%3C/text%3E%3C/svg%3E" />
+<style>
+  :root {
+    --bg: #F6F5F1; --surface: #FFF; --ink: #182026; --muted: #5B6670;
+    --line: #E4E2DA; --accent: #0E6E6E; --accent-deep: #0A5454; --accent-soft: #E3F0EE;
+    --ok: #2F7D46; --warn: #B45309; --danger: #B3261E;
+    --radius: 12px; --shadow: 0 1px 3px rgba(24,32,38,.08), 0 8px 24px -12px rgba(24,32,38,.14);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.65; font-size: 14.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+
+  /* 顶栏 */
+  header.nav { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 58px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .brand .mark { width: 28px; height: 28px; border-radius: 7px; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .brand .sub { font-size: 12.5px; color: var(--muted); font-weight: 400; }
+  .nav-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .nav-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    text-decoration: none; transition: all .15s ease;
+  }
+  .nav-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); text-decoration: none; }
+  .nav-link.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .nav-link.primary:hover { background: var(--accent-deep); color: #fff; }
+  .demo-badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px; background: #FDF6EC; color: var(--warn);
+    border: 1px solid #E8C9A0;
+  }
+  @media (max-width: 700px) { .nav-actions .nav-link.txt { display: none; } }
+
+  /* 主体布局 */
+  main.layout { display: grid; grid-template-columns: 330px 1fr; gap: 18px; padding: 22px 0 40px; align-items: start; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+  .card + .card { margin-top: 18px; }
+  .card h2 { font-size: 14.5px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .ic { width: 26px; height: 26px; border-radius: 7px; background: var(--accent-soft); display: inline-flex; align-items: center; justify-content: center; }
+  .muted { color: var(--muted); font-size: 12.5px; }
+
+  /* 知识库概览 */
+  .kpi { display: flex; gap: 10px; margin-bottom: 14px; }
+  .kpi .box { flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; }
+  .kpi .num { font-size: 21px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .kpi .lbl { font-size: 11.5px; color: var(--muted); }
+  #doc-list { list-style: none; }
+  #doc-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+  #doc-list li:last-child { border-bottom: none; }
+  .fmt { flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 5px; background: var(--accent-soft); color: var(--accent-deep); }
+  .fmt.other { background: #F1EFE9; color: var(--muted); }
+  .cnt { margin-left: auto; color: var(--muted); font-size: 11.5px; }
+
+  /* 演示问题 */
+  .preset { display: grid; gap: 8px; }
+  .preset button {
+    text-align: left; font-size: 13px; padding: 10px 13px; border-radius: 9px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    cursor: pointer; transition: all .15s ease; line-height: 1.5;
+  }
+  .preset button:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); }
+  .preset .tag { font-size: 10.5px; font-weight: 700; margin-right: 6px; color: var(--accent); }
+  .preset .tag.reject { color: var(--warn); }
+
+  /* 上传区（演示提示） */
+  .upload-note {
+    font-size: 12.5px; color: var(--muted); background: var(--bg);
+    border: 1px dashed var(--line); border-radius: 9px; padding: 10px 12px; line-height: 1.7;
+  }
+  .upload-note code { background: #F1EFE9; padding: 1px 6px; border-radius: 4px; font-size: 11.5px; }
+
+  /* 问答区 */
+  .qa-card { min-height: 420px; display: flex; flex-direction: column; }
+  .ask-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .ask-row input {
+    flex: 1; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
+    font-size: 14px; font-family: inherit; outline: none; background: var(--surface);
+  }
+  .ask-row input:focus { border-color: var(--accent); }
+  .ask-row button {
+    padding: 0 22px; border-radius: 10px; border: none; background: var(--accent); color: #fff;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .ask-row button:hover { background: var(--accent-deep); }
+  #answer-area { flex: 1; }
+  .empty {
+    height: 100%; min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--radius); background: #FBFAF7; text-align: center; padding: 24px;
+  }
+  .empty .t { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .empty .s { font-size: 12.5px; max-width: 440px; }
+  .answer-box { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: #FBFAF7; white-space: pre-wrap; font-size: 14.5px; line-height: 1.8; }
+  .answer-box .q { font-weight: 700; margin-bottom: 10px; color: var(--ink); }
+  .answer-box .q::before { content: ""; display: inline-block; width: 4px; height: 14px; background: var(--accent); border-radius: 2px; margin-right: 8px; vertical-align: -2px; }
+  .answer-box.rejected { border-color: #E8C9A0; background: #FDF6EC; }
+  .meta-row { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+  .meta { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-deep); }
+  .meta.reject { background: #FBEBDD; color: var(--warn); }
+  .cites { display: grid; gap: 10px; margin-top: 12px; }
+  .cite { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 9px; padding: 12px 14px; background: var(--surface); }
+  .cite .head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; flex-wrap: wrap; }
+  .cite .head .n { font-size: 11px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+  .cite .head .loc { color: var(--accent-deep); }
+  .cite .head .score { margin-left: auto; font-size: 11.5px; color: var(--muted); font-weight: 400; }
+  .cite .snippet { margin-top: 8px; font-size: 12.5px; color: var(--muted); line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .cite.open .snippet { display: block; }
+  .cite .toggle { margin-top: 6px; font-size: 12px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 0; }
+
+  /* 演示说明条 */
+  .demo-note {
+    display: flex; gap: 10px; align-items: flex-start; margin-bottom: 16px;
+    background: var(--accent-soft); border: 1px solid #CFE3DF; border-radius: 10px;
+    padding: 12px 14px; font-size: 12.5px; color: var(--accent-deep); line-height: 1.7;
+  }
+  .demo-note strong { flex: none; }
+
+  @media (max-width: 900px) {
+    main.layout { grid-template-columns: 1fr; }
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 10px;
+    font-size: 13px; opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 99;
+    max-width: 86vw;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div class="brand">
+      <span class="mark">EDI</span>
+      <span>在线功能演示 <span class="sub">Enterprise Document Intelligence Assistant</span></span>
+    </div>
+    <div class="nav-actions">
+      <span class="demo-badge">静态演示版 · 内置真实回答</span>
+      <a class="nav-link txt" href="__SHOWCASE_URL__" target="_blank" rel="noopener">项目介绍</a>
+    </div>
+  </div>
+</header>
+
+<main class="layout wrap">
+  <!-- 左栏 -->
+  <div class="side">
+    <div class="card">
+      <h2><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>知识库概览</h2>
+      <div class="kpi">
+        <div class="box"><div class="num" id="kpi-docs">4</div><div class="lbl">文档</div></div>
+        <div class="box"><div class="num" id="kpi-chunks">33</div><div class="lbl">知识片段</div></div>
+        <div class="box"><div class="num" id="kpi-model">离线</div><div class="lbl">模型</div></div>
+      </div>
+      <ul id="doc-list"></ul>
+    </div>
+
+    <div class="card">
+      <h2><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>演示问题（一键提问）</h2>
+      <div class="preset">
+        <button data-key="win"><span class="tag">命中</span>Windows 蓝屏怎么处理</button>
+        <button data-key="net"><span class="tag">命中</span>网络断网排查顺序</button>
+        <button data-key="vpn"><span class="tag">命中</span>VPN 认证失败处理</button>
+        <button data-key="mail"><span class="tag">命中</span>邮箱收不到邮件</button>
+        <button data-key="reject"><span class="tag reject">库外</span>年假 / 差旅报销（拒答演示）</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></span>上传文档</h2>
+      <div class="upload-note">
+        在线演示版仅展示问答与引用效果。<br />真实上传 / 向量化入库需部署后端：本机运行 <code>python scripts/run.py</code> 后访问 <code>/demo.html</code>；国内服务器部署见 <code>README_CN.md</code>。
+      </div>
+    </div>
+  </div>
+
+  <!-- 右栏：问答 -->
+  <div class="card qa-card">
+    <h2><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0E6E6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.8.3-1.4 1-1.4 1.9v.3"/><path d="M12 17.5h.01"/></svg></span>文档问答（带引用溯源）</h2>
+    <div class="demo-note"><strong>说明</strong>回答与引用为本地后端真实运行结果（内置快照）；点击左侧演示问题即可查看效果。</div>
+    <div class="ask-row">
+      <input id="query-input" type="text" placeholder="点击左侧演示问题查看效果；或输入后尝试匹配示例" maxlength="200" />
+      <button id="send-btn">提问</button>
+    </div>
+    <div id="answer-area">
+      <div class="empty">
+        <div class="t">等待提问</div>
+        <div class="s">点击左侧演示问题，查看带引用溯源的问答效果：<br />回答将附带来源文档、章节、匹配度与可展开的原文片段。</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toast" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // 内置数据：本地后端真实运行结果快照（offline 引擎）
+  var DEMO_DATA = __DEMO_DATA__;
+
+  var KPI_DOCS = __KPI_DOCS__;
+
+  var $ = function (s) { return document.querySelector(s); };
+  var toast = document.getElementById("toast");
+  var timer = null;
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add("show");
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove("show"); }, 2600);
+  }
+
+  // 文档列表（静态）
+  (function () {
+    var ul = $("#doc-list");
+    ul.innerHTML = KPI_DOCS.map(function (d) {
+      return "<li><span class='fmt" + (d.fmt === "MD" ? " other" : "") + "'>" + d.fmt + "</span>" +
+        d.name + "<span class='cnt'>" + d.n + " 片</span></li>";
+    }).join("");
+  })();
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  // ---------- 渲染回答 ----------
+  function renderAnswer(key) {
+    var d = DEMO_DATA[key];
+    if (!d) { showToast("未找到示例：" + key); return; }
+    var area = $("#answer-area");
+    var box = document.createElement("div");
+    box.className = "answer-box" + (d.grounded ? "" : " rejected");
+    box.innerHTML = "<div class='q'>" + esc(d.query) + "</div>" + esc(d.answer || "");
+
+    var meta = document.createElement("div");
+    meta.className = "meta-row";
+    meta.innerHTML = d.grounded
+      ? "<span class='meta'>基于知识库作答</span><span class='meta'>引擎：offline（内置快照）</span>"
+      : "<span class='meta reject'>知识库外问题 · 已拒答（防幻觉）</span><span class='meta'>引擎：offline（内置快照）</span>";
+    box.appendChild(meta);
+
+    if (d.grounded && d.citations && d.citations.length) {
+      var cites = document.createElement("div");
+      cites.className = "cites";
+      d.citations.forEach(function (c, i) {
+        var cite = document.createElement("div");
+        cite.className = "cite";
+        var loc = c.section && c.section !== c.doc_name ? c.doc_name + "·" + c.section : c.doc_name;
+        var page = c.page ? " · 第 " + c.page + " 页" : "";
+        var score = (c.score * 100).toFixed(1);
+        cite.innerHTML =
+          "<div class='head'><span class='n'>" + (i + 1) + "</span>" +
+          "<span class='loc'>" + esc(loc) + "</span>" + esc(page) +
+          "<span class='score'>匹配度 " + score + "</span></div>" +
+          "<div class='snippet'>" + esc(c.text || "") + "</div>" +
+          "<button class='toggle'>展开原文</button>";
+        cite.querySelector(".toggle").addEventListener("click", function () {
+          var open = cite.classList.toggle("open");
+          this.textContent = open ? "收起原文" : "展开原文";
+        });
+        cites.appendChild(cite);
+      });
+      box.appendChild(cites);
+    }
+    area.innerHTML = "";
+    area.appendChild(box);
+  }
+
+  // 演示问题按钮
+  Array.prototype.forEach.call(document.querySelectorAll(".preset button"), function (btn) {
+    btn.addEventListener("click", function () { renderAnswer(btn.getAttribute("data-key")); });
+  });
+
+  // 输入框：命中内置示例（包含匹配）则展示，否则提示
+  function matchQuery(q) {
+    var keys = Object.keys(DEMO_DATA);
+    for (var i = 0; i < keys.length; i++) {
+      var d = DEMO_DATA[keys[i]];
+      if (d.query === q) return keys[i];
+    }
+    for (var j = 0; j < keys.length; j++) {
+      var d2 = DEMO_DATA[keys[j]];
+      if (d2.query.indexOf(q) >= 0 || q.indexOf(d2.query) >= 0) return keys[j];
+    }
+    return null;
+  }
+  $("#send-btn").addEventListener("click", function () {
+    var q = $("#query-input").value.trim();
+    if (!q) { showToast("请输入问题，或点击左侧演示问题"); return; }
+    var k = matchQuery(q);
+    if (k) { renderAnswer(k); } else { showToast("在线演示版内置 5 组示例问答：请点击左侧演示问题"); }
+  });
+  $("#query-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); $("#send-btn").click(); }
+  });
+})();
+</script>
+</body>
+</html>
+"""
+
+def main():
+    demo_data_js = json.dumps(DATA, ensure_ascii=False)
+    kpi_js = json.dumps(KPI["doclist"], ensure_ascii=False)
+    out = (HTML_TEMPLATE
+           .replace("__DEMO_DATA__", demo_data_js)
+           .replace("__KPI_DOCS__", kpi_js)
+           .replace("__SHOWCASE_URL__", SHOWCASE_URL))
+    target = os.path.join(BASE, "static", "demo-online.html")
+    with open(target, "w", encoding="utf-8") as f:
+        f.write(out)
+    print("generated", target, len(out), "chars")
+
+if __name__ == "__main__":
+    main()
