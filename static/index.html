@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enterprise Document Intelligence Assistant · 企业文档智能问答</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* 互通按钮（保留原版式，仅新增入口） */
+    .topbar { gap: 12px; }
+    .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .nav-link {
+      font-size: 12.5px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+      border: 1px solid var(--line, #E4E2DA); background: var(--bg, #F6F5F1); color: var(--text-1, #182026);
+      text-decoration: none; transition: all .15s ease;
+    }
+    .nav-link:hover { border-color: var(--accent, #0E6E6E); color: var(--accent, #0E6E6E); text-decoration: none; }
+    .nav-link.primary { background: var(--accent, #0E6E6E); color: #fff; border-color: transparent; }
+    .nav-link.primary:hover { background: var(--accent-deep, #0A5454); color: #fff; }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -19,6 +32,10 @@
       <span class="badge" id="badge-docs" title="知识库中文档数量">文档 0</span>
       <span class="badge" id="badge-chunks" title="已切分的知识片段数量">片段 0</span>
       <span class="badge" id="badge-mode" title="当前模型与向量引擎">模型：加载中…</span>
+      <div class="nav-actions">
+        <a class="nav-link" href="/demo.html" title="功能演示页：演示问题一键提问 + 真实上传">功能演示</a>
+        <a class="nav-link primary" href="/showcase.html" title="项目介绍：企业 AI 应用案例展示页">项目介绍</a>
+      </div>
     </div>
   </header>
 
