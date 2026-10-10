@@ -100,7 +100,7 @@ def main() -> int:
         hit = expect_doc in cit_docs
         check(f"「{query[:16]}…」→ 命中《{expect_doc}》", hit, f"实际引用: {cit_docs}")
         check("回答 grounded=True 且含来源标注",
-              resp["grounded"] and "[来源1]" in resp["answer"],
+              resp["grounded"] and "[1]" in resp["answer"],
               f"answer 前 60 字: {resp['answer'][:60]}")
 
     # ---------- 5. 幻觉抑制 ----------

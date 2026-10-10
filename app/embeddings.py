@@ -96,11 +96,14 @@ class ApiEmbeddingProvider(EmbeddingProvider):
             resp.raise_for_status()
         except requests.RequestException as exc:
             raise RuntimeError(f"Embedding API 调用失败：{exc}") from exc
-        data = resp.json()
-        # 兼容两种返回结构：data[i].embedding / data[i]["embedding"]
-        items = data.get("data", [])
-        items.sort(key=lambda it: it.get("index", 0))
-        return [it["embedding"] for it in items]
+        # 解析保护：厂商返回非 OpenAI 兼容结构时，给出明确错误而非 500
+        try:
+            data = resp.json()
+            items = data.get("data", [])
+            items.sort(key=lambda it: it.get("index", 0))
+            return [it["embedding"] for it in items]
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError(f"Embedding API 返回格式异常（期望 OpenAI 兼容响应）：{exc}") from exc
 
 
 # ---------------------------------------------------------------- 工厂

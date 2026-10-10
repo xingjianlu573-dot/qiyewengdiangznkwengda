@@ -49,6 +49,8 @@
   #doc-list { list-style: none; }
   #doc-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
   #doc-list li:last-child { border-bottom: none; }
+  #doc-list li button.doc-del { margin-left: auto; border: none; background: none; color: #b91c1c; cursor: pointer; font-size: 13px; padding: 2px 6px; }
+  #doc-list li button.doc-del:hover { background: #fef2f2; border-radius: 4px; }
   .fmt { flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 5px; background: var(--accent-soft); color: var(--accent-deep); }
   .fmt.other { background: #F1EFE9; color: var(--muted); }
   .cnt { margin-left: auto; color: var(--muted); font-size: 11.5px; }
@@ -257,9 +259,43 @@
     if (!docs.length) { ul.innerHTML = "<li class='muted'>知识库为空，可上传文档</li>"; return; }
     ul.innerHTML = docs.map(function (d) {
       var t = fmtName(d.name);
-      return "<li><span class='fmt" + (t.f === "MD" || t.f === "文本" ? " other" : "") + "'>" + t.f + "</span>" +
-        esc(d.name) + "<span class='cnt'>" + d.chunk_count + " 片</span></li>";
+      return "<li data-id='" + esc(d.id) + "' data-name='" + esc(d.name) + "'>" +
+        "<span class='fmt" + (t.f === "MD" || t.f === "文本" ? " other" : "") + "'>" + t.f + "</span>" +
+        esc(d.name) + "<span class='cnt'>" + d.chunk_count + " 片</span>" +
+        "<button class='doc-del' title='从知识库删除'>✕</button></li>";
     }).join("");
+    // 删除按钮：事件委托到按钮自身，通过 data-* 取 id/name（已转义，防注入）
+    ul.querySelectorAll(".doc-del").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var li = btn.closest("li");
+        removeDoc(li.getAttribute("data-id"), li.getAttribute("data-name"));
+      });
+    });
+  }
+
+  // ---------- 删除文档 ----------
+  async function removeDoc(id, name) {
+    if (!confirm("确定从知识库删除《" + name + "》吗？")) return;
+    try {
+      var res = await fetch(API + "/api/documents/" + id, { method: "DELETE" });
+      if (res.ok) {
+        showToast("已删除《" + name + "》");
+        loadAll();
+      } else {
+        var d = await res.json().catch(function () { return {}; });
+        showToast(d.detail || "删除失败");
+      }
+    } catch (e) {
+      showToast("网络错误：" + e.message);
+    }
+  }
+
+  function showToast(text) {
+    var t = document.createElement("div");
+    t.textContent = text;
+    t.style.cssText = "position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:8px 18px;border-radius:8px;font-size:13px;z-index:99;";
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 1800);
   }
 
   // ---------- 问答 ----------

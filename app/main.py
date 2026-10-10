@@ -73,6 +73,20 @@ async def upload_document(file: UploadFile = File(...)) -> dict:
             status_code=415,
             detail=f"不支持的格式：{ext}（支持 {', '.join(settings.SUPPORTED_SUFFIXES)}）",
         )
+    if ext == ".doc":
+        # python-docx 仅支持 .docx；旧版 .doc 给出明确转存指引，避免"Package not found"式报错
+        raise HTTPException(
+            status_code=400,
+            detail="旧版 .doc 格式暂不支持：请在 Word 中另存为 .docx 后再上传",
+        )
+
+    # 重名检查：同名文档已存在时提示先删除，避免索引里出现两份同名文档
+    existing = pipeline.list_documents().get("documents", [])
+    if any(d["name"] == filename for d in existing):
+        raise HTTPException(
+            status_code=409,
+            detail=f"知识库已存在同名文档《{filename}》：如需更新，请先删除旧文档再上传",
+        )
 
     content = await file.read()
     if len(content) > settings.MAX_UPLOAD_MB * 1024 * 1024:

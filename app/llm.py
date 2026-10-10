@@ -72,7 +72,8 @@ class OfflineAnswerer(LlmClient):
             snippet = _pick_sentences(ev["text"], query, max_len=180)
             loc = f"{ev['doc_name']}（{ev['section']}）" if ev["section"] and ev["section"] != ev["doc_name"] \
                 else ev["doc_name"]
-            lines.append(f"[来源{idx}] {loc}：{snippet}")
+            # 编号用纯数字 [n]，与引用卡片编号一致（API 模式同为 [n]）
+            lines.append(f"[{idx}] {loc}：{snippet}")
         answer = "\n\n".join(lines)
         return Answer(answer=answer, citations=evidence, grounded=True, mode="offline")
 
@@ -118,7 +119,11 @@ class ApiLlmClient(LlmClient):
         except requests.RequestException as exc:
             raise RuntimeError(f"LLM API 调用失败：{exc}") from exc
 
-        content = resp.json()["choices"][0]["message"]["content"]
+        # 解析保护：厂商返回非 OpenAI 兼容结构时，给出明确错误而非 500
+        try:
+            content = resp.json()["choices"][0]["message"]["content"]
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise RuntimeError(f"LLM API 返回格式异常（期望 OpenAI 兼容响应）：{exc}") from exc
 
         # 引用一致性校验：回答中出现的 [n] 必须对应真实证据；无任何引用时补标
         used_indices = _extract_citation_indices(content)

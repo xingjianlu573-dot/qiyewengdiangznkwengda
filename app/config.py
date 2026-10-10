@@ -104,8 +104,9 @@ class Settings:
 
     # ---------- AI Provider 抽象（国产模型切换入口） ----------
     # 取值：offline | openai | qwen | zhipu | deepseek | moonshot | siliconflow
-    MODEL_PROVIDER: str = os.getenv("MODEL_PROVIDER", "offline")
-    # 向后兼容：未设置 MODEL_PROVIDER 时，沿用旧的 LLM_PROVIDER 语义
+    # 默认空：未设置时回退到旧 LLM_PROVIDER 语义；两者都未设置 → offline（免密钥演示）
+    MODEL_PROVIDER: str = os.getenv("MODEL_PROVIDER", "")
+    # 向后兼容：未设置 MODEL_PROVIDER 时，沿用旧的 LLM_PROVIDER 语义（api → openai）
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "offline")
 
     # ---------- 向量化 ----------
@@ -155,7 +156,9 @@ class Settings:
         if mp and mp != "auto":
             return mp
         # 旧配置兼容：LLM_PROVIDER=api 视为通用 openai 兼容接口
-        return "openai" if self.LLM_PROVIDER == "api" else "offline"
+        if (self.LLM_PROVIDER or "").strip().lower() == "api":
+            return "openai"
+        return "offline"
 
     @property
     def provider_defaults(self) -> Dict[str, str]:

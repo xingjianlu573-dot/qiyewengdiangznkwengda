@@ -174,6 +174,8 @@ python scripts/run.py
 
 检索质量可量化评测：`python scripts/evaluate.py` 输出命中率 Hit Rate 与库外拒答率（内置 12 个命中问题 + 3 个库外问题），可用 `--rerank none/offline/llm` 对比不同模式。
 
+> 提示：`MIN_SCORE=0.24` 阈值是按**离线向量**口径标定的；切换到 API 语义向量（如 text-embedding-v3）后，余弦分数分布不同，建议运行 `python scripts/evaluate.py` 观察命中/拒答情况，必要时调整 `MIN_SCORE`（如 0.30~0.40），保证"低相关片段不进回答"的门禁依然有效。
+
 ---
 
 ## 五、常见问题（FAQ）

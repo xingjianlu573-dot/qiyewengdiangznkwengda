@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-"""PDF 解析：使用 PyMuPDF（fitz）按页抽取文本，并在页内识别章节标题。"""
+"""PDF 解析：使用 PyMuPDF 按页抽取文本，并在页内识别章节标题。"""
 import re
 from typing import List, Dict
 
-import fitz  # PyMuPDF
+# 兼容新旧 PyMuPDF 命名（1.23+ 提供 pymupdf 命名空间，旧版仅 fitz）
+try:
+    import pymupdf as fitz  # noqa: N813
+except ImportError:  # pragma: no cover
+    import fitz
 
 # 识别常见章节标题：一、二、三…（中文序号）或 1. 2. 3. 或「第 X 章/节」
 _HEADING_RE = re.compile(

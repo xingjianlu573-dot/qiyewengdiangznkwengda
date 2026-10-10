@@ -8,9 +8,14 @@
 import json
 import math
 import os
+import threading
 import time
 import uuid
 from typing import List, Dict, Optional, Tuple
+
+# 模块级写锁：串行化 add/delete/clear，防止多线程并发读写索引互相覆盖（lost update）
+# 原子写入（tmp + os.replace）只保证不写坏文件，不保证并发语义；锁保证操作顺序。
+_WRITE_LOCK = threading.Lock()
 
 
 class VectorStore:
@@ -50,35 +55,38 @@ class VectorStore:
     def add_document(self, doc_name: str, file_format: str, chunks: List[Dict],
                      embeddings: List[List[float]]) -> str:
         doc_id = uuid.uuid4().hex[:12]
-        for chunk, emb in zip(chunks, embeddings):
-            record = dict(chunk)
-            record["doc_id"] = doc_id  # 覆盖切片阶段的占位 doc_id，保证按文档删除生效
-            record["embedding"] = emb
-            record["id"] = f"{doc_id}#{record['seq']}"
-            self.chunks.append(record)
-        self.documents[doc_id] = {
-            "id": doc_id,
-            "name": doc_name,
-            "format": file_format,
-            "chunk_count": len(chunks),
-            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        self._save()
+        with _WRITE_LOCK:
+            for chunk, emb in zip(chunks, embeddings):
+                record = dict(chunk)
+                record["doc_id"] = doc_id  # 覆盖切片阶段的占位 doc_id，保证按文档删除生效
+                record["embedding"] = emb
+                record["id"] = f"{doc_id}#{record['seq']}"
+                self.chunks.append(record)
+            self.documents[doc_id] = {
+                "id": doc_id,
+                "name": doc_name,
+                "format": file_format,
+                "chunk_count": len(chunks),
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            self._save()
         return doc_id
 
     def delete_document(self, doc_id: str) -> bool:
-        if doc_id not in self.documents:
-            return False
-        del self.documents[doc_id]
-        self.chunks = [c for c in self.chunks if c["doc_id"] != doc_id]
-        self._save()
+        with _WRITE_LOCK:
+            if doc_id not in self.documents:
+                return False
+            del self.documents[doc_id]
+            self.chunks = [c for c in self.chunks if c["doc_id"] != doc_id]
+            self._save()
         return True
 
     def clear(self) -> None:
         """彻底清空索引（重建场景使用）。"""
-        self.chunks = []
-        self.documents = {}
-        self._save()
+        with _WRITE_LOCK:
+            self.chunks = []
+            self.documents = {}
+            self._save()
 
     # ---------------- 检索 ----------------
     def search(self, query_embedding: List[float], top_k: int) -> List[Tuple[Dict, float]]:

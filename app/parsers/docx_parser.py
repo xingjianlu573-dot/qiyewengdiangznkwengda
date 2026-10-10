@@ -18,7 +18,12 @@ def parse_docx(file_path: str, doc_name: str) -> List[Dict]:
     try:
         document = Document(file_path)
     except Exception as exc:
-        raise ValueError(f"无法打开 Word 文档：{exc}")
+        # 旧版 .doc（OLE 复合文档）python-docx 无法打开：给出可操作的提示
+        if "Package not found" in str(exc) or "not a zip" in str(exc).lower():
+            raise ValueError(
+                f"无法打开《{doc_name}》：旧版 .doc 格式不支持，请在 Word 中另存为 .docx 后再上传"
+            ) from exc
+        raise ValueError(f"无法打开 Word 文档：{exc}") from exc
 
     blocks: List[Dict] = []
     current_heading = doc_name

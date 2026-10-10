@@ -215,7 +215,7 @@
       wrap.className = "citations";
       const title = document.createElement("div");
       title.className = "cite-title";
-      title.textContent = `引用来源（检索到 ${retrievedCount} 个相关片段，已过滤低相关）`;
+      title.textContent = `引用来源（已筛选 ${retrievedCount} 个高相关片段作为回答依据）`;
       wrap.appendChild(title);
       citations.forEach((c, i) => wrap.appendChild(buildCiteCard(c, i + 1)));
       bubble.appendChild(wrap);
