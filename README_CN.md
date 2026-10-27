@@ -2,6 +2,7 @@
 
 > 面向**中国大陆用户**的部署与使用指南：无需特殊网络环境，即可下载、部署、使用本系统。
 > 英文总览见 [README.md](README.md)。
+> **完全没有技术基础的朋友**：请直接看 [新手安装教程.md](新手安装教程.md)——10 步装好，每一步都有"做什么/输入什么/看到什么/出问题怎么办"，照着做即可。
 
 ---
 
@@ -81,7 +82,10 @@ docker compose up -d --build
 # 浏览器打开 http://服务器公网IP:8000
 ```
 
-安全建议：在云厂商安全组放行 `8000` 端口，或将服务置于 Nginx 反向代理 + HTTPS 之后。
+安全建议（公网部署必读）：
+- 设置 `API_KEY`（写入 .env），所有 `/api` 业务接口（上传 / 列表 / 删除 / 问答）即要求请求头携带 `Authorization: Bearer <API_KEY>`（或 `X-API-Key: <API_KEY>`），未携带或 Key 错误返回 401；未设置时接口保持本地演示开放（启动时打印告警）。
+- 通过 `CORS_ALLOW_ORIGINS` 把跨域白名单收紧为你的前端域名（默认仅放行 localhost:8000 / 127.0.0.1:8000；CORS 只是浏览器限制，不是安全边界）。
+- 在云厂商安全组只放行必要端口，或将服务置于 Nginx 反向代理 + HTTPS 之后，并配合网关限流与审计日志。
 
 ### 方案 B：国内云平台部署（宝塔面板 / 1Panel）
 
@@ -107,6 +111,7 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 python scripts/ingest.py --dir data/knowledge_base   # 灌入演示知识库（可选）
 python scripts/run.py
 # 打开 http://127.0.0.1:8000
+# （本地演示默认无认证；如需启用 API Key 认证，在 .env 设置 API_KEY=你的密钥）
 ```
 
 ---
@@ -206,6 +211,9 @@ Rerank 是对检索结果的二次精排：先粗排召回更多候选，再按�
 
 **Q9：怎么验证检索效果？**
 运行 `python scripts/evaluate.py`，输出 12 题命中率（当前 92%）与 3 个库外问题拒答率（当前 100%）；也可加 `--rerank none` 与默认 offline 对比，量化重排带来的变化。
+
+**Q10：如何开启 API 认证？**
+在 `.env` 中设置 `API_KEY=你的密钥`（建议 32 位以上随机串）并重启服务：`/api/documents`（上传/列表/删除）与 `/api/query` 即要求请求头 `Authorization: Bearer <API_KEY>`，无 Key / 错误 Key 返回 401；`/api/health` 与静态前端不要求认证。公网部署必须开启，并配合 HTTPS、限流与审计。
 
 ---
 
