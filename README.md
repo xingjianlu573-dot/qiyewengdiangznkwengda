@@ -1,5 +1,7 @@
 # 📚 Enterprise Document Intelligence Assistant 企业文档智能问答系统
 
+> 🛡️ 2026-10-27 安全与数据完整性修复：API Key 认证 + CORS 白名单（RAG-01）、并发写锁防丢更新（RAG-02）、损坏索引备份恢复（RAG-03）、上传分块限流（RAG-04），新增 16 项安全测试全通过。
+
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-0.142-green) ![License](https://img.shields.io/badge/License-MIT-yellow) ![国产模型](https://img.shields.io/badge/LLM-国产适配%20%7C%20OpenAI%20兼容-orange) ![国内部署](https://img.shields.io/badge/部署-中国大陆%20直连-red)
 
 ## 🚀 在线体验与演示
